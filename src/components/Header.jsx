@@ -1,0 +1,124 @@
+import { useState, useEffect } from "react";
+import { Menu, X, ArrowUpRight } from "lucide-react";
+import { influencerData } from "../config/content";
+
+const NAV_ITEMS = [
+  { id: "hero", label: "INTRO" },
+  { id: "about", label: "BIO" },
+  { id: "mediadeck", label: "MEDIA" },
+  { id: "showcase", label: "WORK" },
+  { id: "collabs", label: "PARTNERS" },
+  { id: "contact", label: "INQUIRE" }
+];
+
+export default function Header() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleNavClick = (id) => {
+    setIsOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  return (
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b ${
+        isScrolled
+          ? "bg-background/80 border-white/5 py-4 backdrop-blur-md"
+          : "bg-transparent border-transparent py-6"
+      }`}
+      id="global-header"
+    >
+      <div className="w-full px-8 md:px-16 flex items-center justify-between relative">
+        
+        {/* Left Side: Brand Logo */}
+        <button
+          onClick={() => handleNavClick("hero")}
+          className="font-playfair text-xl sm:text-2xl font-normal tracking-wider text-cream focus:outline-none select-none hover:text-gold transition-colors duration-300 z-10"
+          aria-label="Back to intro"
+        >
+          {influencerData.name.toUpperCase()}
+        </button>
+
+        {/* Center: Desktop Navigation Links (Absolutely Centered) */}
+        <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 select-none absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+          {NAV_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleNavClick(item.id)}
+              className="font-mono text-sm xl:text-base tracking-[0.12em] font-semibold text-cream/70 hover:text-gold transition-colors duration-300 focus:outline-none"
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Right Side: CTA / Mobile Menu toggle wrapper */}
+        <div className="flex items-center space-x-4 z-10">
+          <button
+            onClick={() => handleNavClick("contact")}
+            className="hidden lg:flex font-mono text-xs tracking-[0.1em] uppercase border border-gold/40 hover:border-gold hover:bg-gold hover:text-background transition-all duration-500 py-2.5 px-5 rounded-full text-cream items-center space-x-1.5 focus:outline-none font-medium"
+          >
+            <span>Let's Collaborate</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Mobile Hamburger toggle */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="lg:hidden text-cream hover:text-gold transition-colors duration-300 focus:outline-none"
+            aria-label="Toggle menu"
+            id="mobile-menu-toggle-btn"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+      </div>
+
+      {/* Mobile Menu Panel */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 top-[60px] w-full h-[calc(100vh-60px)] bg-[#0a0a0a]/95 backdrop-blur-lg z-40 flex flex-col p-8 justify-between lg:hidden border-t border-white/5 select-none"
+          id="mobile-navigation-drawer"
+        >
+          <div className="flex flex-col space-y-6 pt-12">
+            {NAV_ITEMS.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleNavClick(item.id)}
+                className="font-playfair text-4xl font-normal text-cream/80 hover:text-gold transition-colors duration-300 text-left focus:outline-none"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-6 pb-12">
+            <button
+              onClick={() => handleNavClick("contact")}
+              className="w-full bg-gold text-background font-mono text-[10px] tracking-widest uppercase py-4 rounded-full font-semibold border border-gold text-center block"
+            >
+              LET'S COLLABORATE
+            </button>
+            <div className="flex justify-between items-center text-[10px] font-mono text-white/40">
+              <span>{influencerData.email}</span>
+              <span>@{influencerData.username}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

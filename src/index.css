@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0a;
+  --color-luxuryBlack: #0d0d0d;
+  --color-luxuryMauve: #1a0f14;
+  
+  --color-gold-light: #d9c39e;
+  --color-gold: #c9a96e;
+  --color-gold-dark: #a3824b;
+  
+  --color-cream: #f5efe6;
+  --color-mauve: #c4a4b0;
+
+  --font-playfair: 'Playfair Display', serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+@layer base {
+  body {
+    background-color: #0a0a0a;
+    color: #f5efe6;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* Custom Scrollbar for luxury look */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0a0a0a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1c1417;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #c9a96e;
+  }
+}
+
+/* Hide default cursor on desktop for custom cursor */
+@media (pointer: fine) {
+  body, a, button, select, input, textarea, [role="button"], label {
+    cursor: none !important;
+  }
+}
+
+/* Glassmorphism utility */
+.glass-card {
+  background: rgba(13, 13, 13, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(197, 164, 176, 0.08);
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(199, 169, 110, 0.25);
+  box-shadow: 0 10px 30px -10px rgba(199, 169, 110, 0.15);
+  transform: translateY(-4px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Gold glow accents */
+.gold-glow-subtle {
+  box-shadow: 0 0 40px -10px rgba(199, 169, 110, 0.12);
+}
+
+.gold-glow {
+  box-shadow: 0 0 30px 2px rgba(199, 169, 110, 0.25);
+}
+
+/* Custom transitions and scroll behaviors */
+.section-reveal {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 1;
+}
+
+/* Custom cursor default styling */
+.custom-cursor {
+  width: 8px;
+  height: 8px;
+  background: #c9a96e;
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor-ring {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(201, 169, 110, 0.4);
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Utility to animate split text letters */
+.char-span {
+  display: inline-block;
+  transform: translateY(100%);
+  opacity: 0;
+}
