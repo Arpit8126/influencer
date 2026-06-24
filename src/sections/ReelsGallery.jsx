@@ -43,17 +43,33 @@ function ReelCard({ reel, isMobile }) {
         <div className="w-2 h-2 rounded-full bg-white/10" />
       </div>
 
-      {/* Instagram Button — Top-Right, always active, small footprint to prevent touch blocking */}
-      <a
-        href={reel.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-pink-400 hover:bg-pink-500/80 hover:text-white active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
-        title="Open on Instagram"
-      >
-        <Instagram className="w-4 h-4" />
-      </a>
+      {/* Instagram Button — Top-Right, always active, small footprint to prevent touch blocking (Desktop only to prevent duplicate indicators on mobile) */}
+      {!isMobile && (
+        <a
+          href={reel.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-pink-400 hover:bg-pink-500/80 hover:text-white active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
+          title="Open on Instagram"
+        >
+          <Instagram className="w-4 h-4" />
+        </a>
+      )}
+
+      {/* Mobile Watch on Instagram Button — Top-Left */}
+      {isMobile && (
+        <a
+          href={reel.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-4 left-4 z-50 flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full text-pink-400 font-sans text-[9px] font-bold tracking-wider active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
+        >
+          <Instagram className="w-3.5 h-3.5 text-pink-400" />
+          <span>Watch on Instagram</span>
+        </a>
+      )}
 
       {/* Video Iframe (Rendered directly in DOM when active, no wrapper divs to prevent pointer-events bugs on mobile Safari) */}
       {!isMobile && showVideo ? (
@@ -66,31 +82,14 @@ function ReelCard({ reel, isMobile }) {
         />
       ) : (
         /* Thumbnail while buffering or on mobile */
-        <>
-          <img
-            src={reel.thumbnailUrl}
-            alt={reel.title}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ zIndex: 20 }}
-            draggable="false"
-            loading="lazy"
-          />
-          {/* Mobile Overlay Call-to-action */}
-          {isMobile && (
-            <div 
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/35 z-30 select-none pointer-events-none"
-            >
-              <div className="flex flex-col items-center space-y-3 bg-black/65 backdrop-blur-md border border-white/15 px-6 py-5 rounded-[1.5rem] shadow-2xl">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 via-rose-500 to-yellow-500 flex items-center justify-center text-white shadow-lg animate-pulse">
-                  <Instagram className="w-6 h-6" />
-                </div>
-                <span className="font-sans text-[10px] tracking-[0.22em] font-extrabold text-white uppercase text-center mt-1">
-                  Watch on Instagram
-                </span>
-              </div>
-            </div>
-          )}
-        </>
+        <img
+          src={reel.thumbnailUrl}
+          alt={reel.title}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 20 }}
+          draggable="false"
+          loading="lazy"
+        />
       )}
 
       {/* Bottom bar — ONLY show when video is NOT active/playing */}
