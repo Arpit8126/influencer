@@ -11,38 +11,101 @@ export default function Hero() {
   const leftContentRef = useRef(null);
   const rightContentRef = useRef(null);
 
-  // Helper function to split text into spans for GSAP animation
-  const splitText = (text) => {
-    return text.split("").map((char, index) => (
-      <span key={index} className="hero-char inline-block translate-y-[100%] opacity-0">
-        {char === " " ? "\u00A0" : char}
-      </span>
-    ));
-  };
-
   useEffect(() => {
     // 1. Initial Load Animations
     const tl = gsap.timeline({ delay: 0.6 });
 
-    // Name letter-by-letter animation
-    tl.to(".hero-char", {
-      y: 0,
-      opacity: 1,
-      stagger: 0.04,
-      duration: 0.8,
-      ease: "power4.out"
+    // Word-by-word elegant slide-up and fade-in
+    tl.fromTo(".hero-word-1, .hero-word-2", 
+      { y: 35, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        stagger: 0.15,
+        duration: 1.0,
+        ease: "power3.out"
+      }
+    );
+
+    // Niche spacing reveal
+    tl.fromTo(".hero-niche", 
+      { letterSpacing: "0.08em", opacity: 0, y: 15 },
+      { letterSpacing: "0.22em", opacity: 1, y: 0, duration: 1.2, ease: "power3.out" },
+      "-=0.6"
+    );
+
+    // Tagline fade and lift (explicit fromTo to bypass Tailwind transform clashes)
+    tl.fromTo(".hero-fade-in", 
+      { y: 20, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        stagger: 0.12,
+        duration: 0.8,
+        ease: "power3.out"
+      }, 
+      "-=0.6"
+    );
+
+    tl.eventCallback("onComplete", () => {
+      console.log("Hero load animations complete!");
     });
 
-    // Tagline fade and lift
-    tl.to(".hero-fade-in", {
-      y: 0,
-      opacity: 1,
-      stagger: 0.15,
-      duration: 0.8,
-      ease: "power3.out"
-    }, "-=0.4");
+    // 2. Mouse Move Parallax on Left Content & Background Blobs
+    const handleMouseParallax = (e) => {
+      if (window.innerWidth < 1024) return; // Disable on tablet/mobile to avoid layout issues
+      
+      const { clientX, clientY } = e;
+      const xVal = (clientX - window.innerWidth / 2) * 0.015;
+      const yVal = (clientY - window.innerHeight / 2) * 0.015;
 
-    // 2. Parallax Scroll Trigger
+      gsap.to(leftContentRef.current, {
+        x: xVal,
+        y: yVal,
+        duration: 0.8,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+
+      // Parallax displacement for background glows
+      gsap.to(".hero-glow-blob-1", {
+        x: xVal * -0.5,
+        y: yVal * -0.5,
+        duration: 1.2,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+      gsap.to(".hero-glow-blob-2", {
+        x: xVal * 0.3,
+        y: yVal * 0.3,
+        duration: 1.2,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+    };
+
+    window.addEventListener("mousemove", handleMouseParallax);
+
+    // Floating animations for background blobs
+    const blob1Tween = gsap.to(".hero-glow-blob-1", {
+      x: "random(-30, 30)",
+      y: "random(-30, 30)",
+      duration: 7,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+
+    const blob2Tween = gsap.to(".hero-glow-blob-2", {
+      x: "random(-40, 40)",
+      y: "random(-40, 40)",
+      duration: 9,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+
+    // 3. Parallax Scroll Trigger
     const scrollTl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
@@ -54,8 +117,8 @@ export default function Hero() {
 
     // Move left content down slower than scrolling (parallax)
     scrollTl.to(leftContentRef.current, {
-      y: 120,
-      opacity: 0.2,
+      y: 140,
+      opacity: 0.1,
       ease: "none"
     }, 0);
 
@@ -63,12 +126,15 @@ export default function Hero() {
     scrollTl.to(rightContentRef.current, {
       y: -60,
       scale: 0.95,
-      opacity: 0.4,
+      opacity: 0.3,
       ease: "none"
     }, 0);
 
     return () => {
+      window.removeEventListener("mousemove", handleMouseParallax);
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      blob1Tween.kill();
+      blob2Tween.kill();
     };
   }, []);
 
@@ -87,6 +153,10 @@ export default function Hero() {
     >
       {/* Background glow vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(26,15,20,0.15)_0%,rgba(10,10,10,0)_70%)] pointer-events-none" />
+
+      {/* Floating luxury background ambient glow blobs */}
+      <div className="absolute top-[20%] left-[10%] w-[350px] h-[350px] rounded-full bg-[radial-gradient(circle,rgba(199,169,110,0.08)_0%,transparent_70%)] filter blur-3xl z-0 pointer-events-none hero-glow-blob-1" />
+      <div className="absolute bottom-[20%] right-[15%] w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle,rgba(26,15,20,0.35)_0%,transparent_70%)] filter blur-3xl z-0 pointer-events-none hero-glow-blob-2" />
 
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center z-10">
         
@@ -108,10 +178,15 @@ export default function Hero() {
 
           {/* Heading Name */}
           <div className="space-y-2">
-            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-playfair font-normal leading-[1.05] tracking-tighter text-cream overflow-hidden py-1">
-              {splitText(influencerData.name)}
+            <h1 className="text-5xl sm:text-6xl xl:text-7xl font-playfair font-normal leading-[1.05] tracking-tighter overflow-hidden py-1 flex flex-wrap gap-x-4">
+              <span className="hero-word-1 inline-block opacity-0 translate-y-8 text-cream pr-4">
+                Divya
+              </span>
+              <span className="hero-word-2 inline-block opacity-0 translate-y-8 text-luxury-gradient italic">
+                Rana
+              </span>
             </h1>
-            <h2 className="hero-fade-in opacity-0 translate-y-4 text-sm sm:text-base font-mono tracking-widest text-mauve uppercase">
+            <h2 className="hero-niche opacity-0 text-sm sm:text-base font-mono text-mauve uppercase drop-shadow-[0_0_8px_rgba(196,164,176,0.12)]">
               {influencerData.niche}
             </h2>
           </div>
@@ -151,13 +226,13 @@ export default function Hero() {
         </div>
       </div>
       
-      {/* Scroll Down Hint */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center space-y-2 pointer-events-none opacity-30 select-none">
-        <span className="font-mono text-[8px] tracking-widest uppercase text-cream">
+      {/* Scroll Down Hint: Sleek luxury mouse scroll dot indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center space-y-2.5 pointer-events-none opacity-40 select-none">
+        <span className="font-mono text-[8px] tracking-[0.2em] uppercase text-cream/70">
           SCROLL TO EXPLORE
         </span>
-        <div className="h-6 w-[1px] bg-cream/30 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1/2 bg-gold animate-bounce" />
+        <div className="w-5 h-8 border border-cream/30 rounded-full flex justify-center p-1.5">
+          <div className="w-1.5 h-1.5 bg-gold rounded-full animate-scroll-dot" />
         </div>
       </div>
     </section>

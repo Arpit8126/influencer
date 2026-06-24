@@ -1,9 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
 
 export default function ThreeCanvas({ imageUrl }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
+  const portraitWrapperRef = useRef(null);
+  const [webglActive, setWebGLActive] = useState(false);
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -56,7 +59,7 @@ export default function ThreeCanvas({ imageUrl }) {
     const bgSpeeds = [];
 
     for (let i = 0; i < bgParticleCount * 3; i += 3) {
-      // Sparser distribution
+      // Sparser distribution in 3D
       bgPositions[i] = (Math.random() - 0.5) * 6; // X
       bgPositions[i + 1] = (Math.random() - 0.5) * 6; // Y
       bgPositions[i + 2] = (Math.random() - 0.5) * 4; // Z
@@ -91,7 +94,7 @@ export default function ThreeCanvas({ imageUrl }) {
     const haloAngles = new Float32Array(haloParticleCount);
     const haloRadii = new Float32Array(haloParticleCount);
     
-    const haloRadius = 1.75; // Fits around the portrait in 3D scene space
+    const haloRadius = 2.2; // Fits around the larger portrait in 3D scene space
 
     for (let i = 0; i < haloParticleCount; i++) {
       const angle = (i / haloParticleCount) * Math.PI * 2 + Math.random() * 0.1;
@@ -126,11 +129,97 @@ export default function ThreeCanvas({ imageUrl }) {
     
     scene.add(haloPoints);
 
+
+    // 3. TEXTURE LOADING & PORTRAIT plane mesh inside WebGL
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(imageUrl, () => {
+      // Once texture is successfully loaded, activate WebGL render overlay
+      setWebGLActive(true);
+    });
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    // GLSL Shaders for Liquid Ripple & Spotlight Light Sweep
+    const vertexShaderSource = `
+      varying vec2 vUv;
+      uniform float uTime;
+      uniform float uHover;
+      void main() {
+        vUv = uv;
+        vec3 pos = position;
+        // Silk wave ripple in vertices
+        float wave = sin(pos.x * 2.5 + uTime * 1.8) * cos(pos.y * 2.5 + uTime * 1.8) * (0.015 + 0.045 * uHover);
+        pos.z += wave;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `;
+
+    const fragmentShaderSource = `
+      varying vec2 vUv;
+      uniform sampler2D uTexture;
+      uniform float uTime;
+      uniform vec2 uMouse;
+      uniform float uHover;
+      void main() {
+        vec2 uv = vUv;
+        // 1. Liquid coordinate distortion ripple based on time and center distance
+        float distFromCenter = distance(uv, vec2(0.5, 0.5));
+        float ripple = sin(distFromCenter * 15.0 - uTime * 2.5) * 0.005 * uHover;
+        uv += ripple;
+        
+        vec4 color = texture2D(uTexture, uv);
+        
+        // 2. Gold reflective sweep (spotlight reflection)
+        vec2 lightPos = uMouse * 0.5 + 0.5;
+        float distToLight = distance(uv, lightPos);
+        float sheen = smoothstep(0.4, 0.0, distToLight) * 0.14 * uHover;
+        vec3 goldTint = vec3(0.79, 0.66, 0.43); // #c9a96e
+        
+        // Global ambient gold tint on hover
+        vec3 warmBase = color.rgb + (goldTint * 0.03 * uHover);
+        vec3 finalColor = warmBase + (goldTint * sheen);
+        
+        // 3. Edge vignette fade to avoid harsh card boundaries
+        float borderFadeX = smoothstep(0.0, 0.06, uv.x) * smoothstep(1.0, 0.94, uv.x);
+        float borderFadeY = smoothstep(0.0, 0.06, uv.y) * smoothstep(1.0, 0.94, uv.y);
+        float borderFade = borderFadeX * borderFadeY;
+        
+        gl_FragColor = vec4(finalColor, color.a * borderFade);
+        
+        // Discard low alpha pixels to allow background particles to render behind transparent card edges
+        if (gl_FragColor.a < 0.01) {
+          discard;
+        }
+      }
+    `;
+
+    // Plane geometry matching 350:455 aspect ratio (approx 2.9:3.77)
+    const portraitGeometry = new THREE.PlaneGeometry(2.9, 3.77);
+    const portraitMaterial = new THREE.ShaderMaterial({
+      vertexShader: vertexShaderSource,
+      fragmentShader: fragmentShaderSource,
+      uniforms: {
+        uTexture: { value: texture },
+        uTime: { value: 0 },
+        uMouse: { value: new THREE.Vector2(0, 0) },
+        uHover: { value: 0 }
+      },
+      transparent: true,
+      depthWrite: true // Allows correct Z-occlusion for background/halo particles
+    });
+
+    const portraitMesh = new THREE.Mesh(portraitGeometry, portraitMaterial);
+    portraitMesh.position.set(0, 0, 0.1); // Slightly forward from particles at Z = 0
+    scene.add(portraitMesh);
+
+
     // Mouse Interaction
     const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    const portraitMouse = { targetX: 0, targetY: 0 };
+    let targetHover = 0.0;
 
     const handleMouseMove = (e) => {
-      // Normalized coordinates -1 to 1
+      // Normalized coordinates -1 to 1 for global camera parallax
       const rect = container.getBoundingClientRect();
       mouse.targetX = ((e.clientX - rect.left) / width) * 2 - 1;
       mouse.targetY = -((e.clientY - rect.top) / height) * 2 + 1;
@@ -147,7 +236,7 @@ export default function ThreeCanvas({ imageUrl }) {
 
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth mouse follow
+      // Smooth camera mouse follow (global parallax)
       mouse.x += (mouse.targetX - mouse.x) * 0.08;
       mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
@@ -188,7 +277,20 @@ export default function ThreeCanvas({ imageUrl }) {
       }
       haloPositionsAttr.needsUpdate = true;
 
-      // 3. Camera parallax based on mouse
+      // 3. Update WebGL Portrait Uniforms & Animations
+      portraitMaterial.uniforms.uTime.value = elapsedTime;
+      portraitMaterial.uniforms.uHover.value += (targetHover - portraitMaterial.uniforms.uHover.value) * 0.08;
+      portraitMaterial.uniforms.uMouse.value.x += (portraitMouse.targetX - portraitMaterial.uniforms.uMouse.value.x) * 0.08;
+      portraitMaterial.uniforms.uMouse.value.y += (portraitMouse.targetY - portraitMaterial.uniforms.uMouse.value.y) * 0.08;
+
+      // Local 3D mesh tilt inside WebGL scene (corresponds to degrees tilted outside)
+      portraitMesh.rotation.y = portraitMaterial.uniforms.uMouse.value.x * 0.18;
+      portraitMesh.rotation.x = -portraitMaterial.uniforms.uMouse.value.y * 0.15;
+
+      // Y-axis breathing float displacement
+      portraitMesh.position.y = Math.sin(elapsedTime * 1.2) * 0.06;
+
+      // 4. Camera parallax based on mouse
       camera.position.x = mouse.x * 0.8;
       camera.position.y = mouse.y * 0.8;
       camera.lookAt(scene.position);
@@ -214,10 +316,57 @@ export default function ThreeCanvas({ imageUrl }) {
     const resizeObserver = new ResizeObserver(() => handleResize());
     resizeObserver.observe(container);
 
+    // Dynamic Hover Handlers to Tilt Wrapper and Update Shaders
+    const handlePortraitMove = (e) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      // Normalized deltas (-1 to 1)
+      const dx = (x - centerX) / centerX;
+      const dy = (y - centerY) / centerY;
+
+      portraitMouse.targetX = dx;
+      portraitMouse.targetY = -dy;
+      targetHover = 1.0;
+
+      // 3D Tilt the portrait HTML wrapper container in perfect sync with WebGL mesh
+      gsap.to(portraitWrapperRef.current, {
+        rotateY: dx * 10,
+        rotateX: -dy * 10,
+        transformPerspective: 1000,
+        ease: "power2.out",
+        duration: 0.5,
+        overwrite: "auto"
+      });
+    };
+
+    const handlePortraitLeave = () => {
+      portraitMouse.targetX = 0;
+      portraitMouse.targetY = 0;
+      targetHover = 0.0;
+
+      gsap.to(portraitWrapperRef.current, {
+        rotateY: 0,
+        rotateX: 0,
+        ease: "power3.out",
+        duration: 0.8,
+        overwrite: "auto"
+      });
+    };
+
+    container.addEventListener("mousemove", handlePortraitMove);
+    container.addEventListener("mouseleave", handlePortraitLeave);
+
     // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mousemove", handlePortraitMove);
+      container.removeEventListener("mouseleave", handlePortraitLeave);
       resizeObserver.disconnect();
       renderer.dispose();
       bgGeometry.dispose();
@@ -225,13 +374,17 @@ export default function ThreeCanvas({ imageUrl }) {
       haloGeometry.dispose();
       haloMaterial.dispose();
       particleTexture.dispose();
+      portraitGeometry.dispose();
+      portraitMaterial.dispose();
+      texture.dispose();
     };
   }, [imageUrl]);
 
   return (
     <div 
       ref={containerRef} 
-      className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] flex items-center justify-center select-none"
+      className="relative w-full h-[450px] sm:h-[550px] lg:h-[650px] flex items-center justify-center select-none"
+      style={{ perspective: "1200px" }}
     >
       {/* 3D Canvas overlaid on background */}
       <canvas 
@@ -239,22 +392,43 @@ export default function ThreeCanvas({ imageUrl }) {
         className="absolute inset-0 z-10 w-full h-full pointer-events-none" 
       />
 
-      {/* The portrait image in the center */}
+      {/* Portrait Container with GSAP Parallax */}
       <div 
-        className="relative w-[280px] h-[360px] sm:w-[350px] sm:h-[450px] lg:w-[400px] lg:h-[520px] rounded-t-[120px] rounded-b-[20px] overflow-hidden border border-gold/20 shadow-2xl z-0"
-        style={{
-          boxShadow: "0 25px 50px -12px rgba(199, 169, 110, 0.15)"
-        }}
+        ref={portraitWrapperRef}
+        className="relative w-[300px] h-[390px] sm:w-[380px] sm:h-[494px] lg:w-[440px] lg:h-[572px] z-0 transition-shadow duration-500"
+        style={{ transformStyle: "preserve-3d" }}
       >
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
-        <img 
-          src={imageUrl} 
-          alt="Divya Rana portrait" 
-          className="w-full h-full object-cover object-center filter contrast-[1.05] brightness-[0.9] grayscale-[15%]"
-          draggable="false"
-        />
-        {/* Subtle gold glow behind photo */}
-        <div className="absolute inset-0 bg-gold/5 mix-blend-overlay z-0" />
+        {/* Layer 2: Main Portrait Image Card (Fallback: displays instantly, fades out when WebGL loads) */}
+        <div 
+          className={`absolute inset-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl z-20 bg-[#0c0c0c] transition-opacity duration-1000 ${
+            webglActive ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          {/* Frosted vignette overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20" />
+          
+          {/* Moving light sheen overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(201,169,110,0.05)_50%,transparent_75%)] bg-[length:250%_250%] animate-sheen z-20 pointer-events-none" />
+
+          <img 
+            src={imageUrl} 
+            alt="Divya Rana portrait" 
+            className="w-full h-full object-cover object-center filter contrast-[1.03] brightness-[0.93] transition-transform duration-700"
+            draggable="false"
+          />
+          {/* Subtle gold overlay filter */}
+          <div className="absolute inset-0 bg-gold/5 mix-blend-overlay z-0" />
+        </div>
+
+        {/* Layer 3: Dynamic overlay label badge */}
+        <div 
+          className="absolute -bottom-3 -right-3 bg-gold text-background font-mono text-[9px] tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-gold/40 flex items-center space-x-1"
+          style={{ transform: "translateZ(30px)" }}
+        >
+          <span>DIVYA RANA</span>
+          <span className="opacity-50">•</span>
+          <span>CREATOR</span>
+        </div>
       </div>
     </div>
   );
