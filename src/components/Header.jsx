@@ -17,11 +17,19 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
+    let rafId = null;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        setIsScrolled(window.scrollY > 50);
+      });
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const handleNavClick = (id) => {
@@ -36,7 +44,7 @@ export default function Header() {
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 border-b ${
         isScrolled
-          ? "bg-background/80 border-white/5 py-4 backdrop-blur-md"
+          ? "bg-background/90 border-white/5 py-4 supports-[backdrop-filter]:backdrop-blur-md"
           : "bg-transparent border-transparent py-6"
       }`}
       id="global-header"
@@ -91,7 +99,7 @@ export default function Header() {
       {/* Mobile Menu Panel */}
       {isOpen && (
         <div 
-          className="fixed inset-0 top-[60px] w-full h-[calc(100vh-60px)] bg-[#0b0709]/95 backdrop-blur-lg z-40 flex flex-col p-8 justify-between lg:hidden border-t border-white/5 select-none"
+          className="fixed inset-0 top-[60px] w-full h-[calc(100vh-60px)] bg-[#0b0709]/98 z-40 flex flex-col p-8 justify-between lg:hidden border-t border-white/5 select-none"
           id="mobile-navigation-drawer"
         >
           <div className="flex flex-col space-y-6 pt-12">

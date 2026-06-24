@@ -14,29 +14,39 @@ export default function ScrollIndicator() {
   const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight > 0) {
-        const progress = (window.scrollY / totalHeight) * 100;
-        setScrollProgress(progress);
-      }
+    let rafId = null;
 
-      // Determine active section
-      for (const section of SECTIONS) {
-        const el = document.getElementById(section.id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= window.innerHeight * 0.4 && rect.bottom >= window.innerHeight * 0.4) {
-            setActiveSection(section.id);
+    const handleScroll = () => {
+      // Throttle to one RAF per scroll event — prevents re-render every pixel
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (totalHeight > 0) {
+          const progress = (window.scrollY / totalHeight) * 100;
+          setScrollProgress(progress);
+        }
+
+        // Determine active section
+        for (const section of SECTIONS) {
+          const el = document.getElementById(section.id);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top <= window.innerHeight * 0.4 && rect.bottom >= window.innerHeight * 0.4) {
+              setActiveSection(section.id);
+            }
           }
         }
-      }
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const scrollToSection = (id) => {

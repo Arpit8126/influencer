@@ -30,9 +30,6 @@ function ReelCard({ reel }) {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    // Reveal immediately when card enters viewport.
-    // The iframe has been buffering since page load (visibility:hidden),
-    // so by the time the user scrolls here the video is ready.
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -40,7 +37,7 @@ function ReelCard({ reel }) {
           observer.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1 }  // Lowered from 0.3 — triggers reliably on small phone screens
     );
     if (cardRef.current) observer.observe(cardRef.current);
     return () => observer.disconnect();
@@ -230,8 +227,9 @@ export default function Showcase() {
 
           <div
             ref={reelsRowRef}
-            className="flex overflow-x-auto pb-8 space-x-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 scroll-smooth snap-x snap-mandatory"
+            className="flex overflow-x-auto pb-8 space-x-6 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 snap-x snap-mandatory"
             id="reels-scroller-row"
+            style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
           >
             {influencerData.instagramReels.map((reel) => (
               <ReelCard key={reel.id} reel={reel} />
