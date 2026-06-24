@@ -99,9 +99,9 @@ export default function Carousel3D() {
     // Cards Setup
     const cards = influencerData.carouselCards;
     const N = cards.length;
-    const radius = 2.4; // Distance from center
-    const cardWidth = 1.3;
-    const cardHeight = 1.7;
+    const radius = 1.9; // Distance from center - tightened gaps
+    const cardWidth = 1.45; // Increased width
+    const cardHeight = 1.9; // Increased height
     const cardMeshes = [];
     const textureLoader = new THREE.TextureLoader();
     textureLoader.crossOrigin = "anonymous";
@@ -122,6 +122,22 @@ export default function Carousel3D() {
         (texture) => {
           texture.minFilter = THREE.LinearFilter;
           texture.flipY = true; // Render upright in WebGL coordinate space
+          
+          // Replicate object-fit: cover crop logic for WebGL texture coordinates
+          if (texture.image) {
+            const imgAspect = texture.image.width / texture.image.height;
+            const planeAspect = cardWidth / cardHeight;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            if (imgAspect > planeAspect) {
+              texture.repeat.set(planeAspect / imgAspect, 1.0);
+              texture.offset.set((1.0 - (planeAspect / imgAspect)) / 2.0, 0.0);
+            } else {
+              texture.repeat.set(1.0, imgAspect / planeAspect);
+              texture.offset.set(0.0, (1.0 - (imgAspect / planeAspect)) / 2.0);
+            }
+          }
+          
           material.map = texture;
           material.needsUpdate = true;
         },
@@ -164,7 +180,6 @@ export default function Carousel3D() {
     let previousMouseX = 0;
     let dragDeltaX = 0;
     let targetRotationY = 0;
-    let autoRotateSpeed = 0.003;
     let idleTimer = 0;
 
     // Raycasting & Hover State
@@ -178,7 +193,6 @@ export default function Carousel3D() {
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       previousMouseX = clientX;
       dragDeltaX = 0;
-      autoRotateSpeed = 0; // stop auto rotating during drag
       idleTimer = 0;
     };
 
@@ -202,7 +216,7 @@ export default function Carousel3D() {
       }
     };
 
-    const onPointerUp = (e) => {
+    const onPointerUp = () => {
       isDragging = false;
       
       // If drag distance was very small, treat as a click
@@ -368,13 +382,13 @@ export default function Carousel3D() {
           hoveredCardTitle ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-4"
         }`}
       >
-        <span className="font-mono text-[10px] text-gold tracking-widest uppercase mb-1">
+        <span className="font-mono text-xs text-pink-400 tracking-widest uppercase mb-1">
           {hoveredCardCat}
         </span>
         <h3 className="text-xl sm:text-2xl font-playfair font-medium text-cream">
           {hoveredCardTitle}
         </h3>
-        <span className="font-mono text-[9px] text-white/40 tracking-wider mt-2">
+        <span className="font-mono text-xs text-white/40 tracking-wider mt-2">
           DRAG TO ROTATE | CLICK TO VIEW ON INSTAGRAM
         </span>
       </div>
@@ -385,7 +399,7 @@ export default function Carousel3D() {
           !hoveredCardTitle ? "opacity-40" : "opacity-0"
         }`}
       >
-        <span className="font-mono text-[9px] text-cream/70 tracking-widest uppercase">
+        <span className="font-mono text-xs text-cream/70 tracking-widest uppercase">
           ✦ Swipe or Drag to Rotate the Lookbook ✦
         </span>
       </div>

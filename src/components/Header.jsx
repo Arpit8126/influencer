@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { id: "about", label: "BIO" },
   { id: "mediadeck", label: "MEDIA" },
   { id: "showcase", label: "WORK" },
+  { id: "reels-scroller-row", label: "GALLERY" },
   { id: "collabs", label: "PARTNERS" },
   { id: "contact", label: "INQUIRE" }
 ];
@@ -45,7 +46,7 @@ export default function Header() {
         {/* Left Side: Brand Logo */}
         <button
           onClick={() => handleNavClick("hero")}
-          className="font-playfair text-xl sm:text-2xl font-normal tracking-wider text-cream focus:outline-none select-none hover:text-gold transition-colors duration-300 z-10"
+          className="font-playfair text-xl sm:text-2xl font-normal tracking-wider text-cream focus:outline-none select-none hover:text-pink-400 transition-colors duration-300 z-10"
           aria-label="Back to intro"
         >
           {influencerData.name.toUpperCase()}
@@ -57,7 +58,7 @@ export default function Header() {
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
-              className="font-mono text-sm xl:text-base tracking-[0.12em] font-semibold text-cream/70 hover:text-gold transition-colors duration-300 focus:outline-none"
+              className="font-sans text-xs tracking-[0.18em] font-semibold text-cream/70 hover:text-pink-400 transition-colors duration-300 focus:outline-none uppercase"
             >
               {item.label}
             </button>
@@ -68,7 +69,7 @@ export default function Header() {
         <div className="flex items-center space-x-4 z-10">
           <button
             onClick={() => handleNavClick("contact")}
-            className="hidden lg:flex font-mono text-xs tracking-[0.1em] uppercase border border-gold/40 hover:border-gold hover:bg-gold hover:text-background transition-all duration-500 py-2.5 px-5 rounded-full text-cream items-center space-x-1.5 focus:outline-none font-medium"
+            className="hidden lg:flex font-sans text-[10px] tracking-[0.18em] uppercase border border-pink-500/30 hover:border-pink-400 hover:bg-gradient-to-r hover:from-pink-500 hover:to-coral hover:text-background transition-all duration-500 py-2.5 px-5.5 rounded-full text-cream items-center space-x-1.5 focus:outline-none font-bold"
           >
             <span>Let's Collaborate</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -77,7 +78,7 @@ export default function Header() {
           {/* Mobile Hamburger toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden text-cream hover:text-gold transition-colors duration-300 focus:outline-none"
+            className="lg:hidden text-cream hover:text-pink-400 transition-colors duration-300 focus:outline-none"
             aria-label="Toggle menu"
             id="mobile-menu-toggle-btn"
           >
@@ -90,7 +91,7 @@ export default function Header() {
       {/* Mobile Menu Panel */}
       {isOpen && (
         <div 
-          className="fixed inset-0 top-[60px] w-full h-[calc(100vh-60px)] bg-[#0a0a0a]/95 backdrop-blur-lg z-40 flex flex-col p-8 justify-between lg:hidden border-t border-white/5 select-none"
+          className="fixed inset-0 top-[60px] w-full h-[calc(100vh-60px)] bg-[#0b0709]/95 backdrop-blur-lg z-40 flex flex-col p-8 justify-between lg:hidden border-t border-white/5 select-none"
           id="mobile-navigation-drawer"
         >
           <div className="flex flex-col space-y-6 pt-12">
@@ -98,7 +99,7 @@ export default function Header() {
               <button
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
-                className="font-playfair text-4xl font-normal text-cream/80 hover:text-gold transition-colors duration-300 text-left focus:outline-none"
+                className="font-italiana text-4xl font-normal text-cream/80 hover:text-pink-400 transition-colors duration-300 text-left focus:outline-none"
               >
                 {item.label}
               </button>
@@ -108,11 +109,11 @@ export default function Header() {
           <div className="space-y-6 pb-12">
             <button
               onClick={() => handleNavClick("contact")}
-              className="w-full bg-gold text-background font-mono text-[10px] tracking-widest uppercase py-4 rounded-full font-semibold border border-gold text-center block"
+              className="w-full bg-gradient-to-r from-pink-500 to-coral text-background font-sans text-xs font-bold tracking-[0.16em] uppercase py-4 rounded-full border border-pink-400/20 text-center block"
             >
               LET'S COLLABORATE
             </button>
-            <div className="flex justify-between items-center text-[10px] font-mono text-white/40">
+            <div className="flex justify-between items-center text-xs font-sans text-white/50 tracking-wider font-semibold">
               <span>{influencerData.email}</span>
               <span>@{influencerData.username}</span>
             </div>

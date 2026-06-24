@@ -15,10 +15,10 @@ export default function Footer() {
         
         {/* Left Side: Brand name and tagline */}
         <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
-          <span className="text-xl font-playfair font-normal tracking-tight text-cream">
+          <span className="text-xl font-italiana font-normal tracking-wide text-cream">
             {influencerData.name}
           </span>
-          <span className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+          <span className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
             Built for Brand Partnerships
           </span>
         </div>
@@ -30,7 +30,7 @@ export default function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram Profile"
-            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-cream/70 hover:text-gold hover:border-gold/50 transition-all duration-300 transform active:scale-95 bg-white/5"
+            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-cream/70 hover:text-pink-400 hover:border-pink-400/50 transition-all duration-300 transform active:scale-95 bg-white/5"
             id="footer-instagram-btn"
           >
             <Instagram className="w-4 h-4" />
@@ -38,7 +38,7 @@ export default function Footer() {
           <a
             href={`mailto:${influencerData.email}`}
             aria-label="Send Direct Email"
-            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-cream/70 hover:text-gold hover:border-gold/50 transition-all duration-300 transform active:scale-95 bg-white/5"
+            className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-cream/70 hover:text-pink-400 hover:border-pink-400/50 transition-all duration-300 transform active:scale-95 bg-white/5"
             id="footer-email-btn"
           >
             <Mail className="w-4 h-4" />
@@ -49,14 +49,14 @@ export default function Footer() {
         <div className="flex flex-col items-center md:items-end text-center md:text-right space-y-2">
           <button
             onClick={scrollToTop}
-            className="flex items-center space-x-2 text-cream/50 hover:text-gold transition-colors duration-300 text-xs font-mono tracking-widest uppercase focus:outline-none"
+            className="flex items-center space-x-2 text-cream/50 hover:text-pink-400 transition-colors duration-300 text-xs font-sans font-bold tracking-[0.16em] uppercase focus:outline-none"
             aria-label="Scroll back to top"
             id="footer-back-to-top-btn"
           >
             <span>Back to top</span>
             <ArrowUp className="w-3.5 h-3.5" />
           </button>
-          <p className="font-mono text-[8px] text-white/20 tracking-wider">
+          <p className="font-sans text-xs text-white/30 tracking-wide">
             &copy; {new Date().getFullYear()} {influencerData.name}. ALL RIGHTS RESERVED.
           </p>
         </div>

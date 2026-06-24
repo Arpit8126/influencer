@@ -74,6 +74,9 @@ export default function App() {
 
   return (
     <>
+      {/* Paper Grain Overlay for tactile texture */}
+      <div className="paper-grain-overlay" />
+
       {/* Global Interactive Cursor */}
       <CustomCursor />
 
@@ -92,7 +95,7 @@ export default function App() {
           </h1>
           {/* Eyebrow subtitle */}
           <div className="overflow-hidden">
-            <p className="loader-char text-[9px] font-mono tracking-[0.3em] text-gold uppercase opacity-0">
+            <p className="loader-char text-xs font-mono tracking-[0.3em] text-pink-400 uppercase opacity-0">
               BEAUTY • LIFESTYLE • SKINCARE
             </p>
           </div>

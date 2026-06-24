@@ -54,7 +54,7 @@ export default function ScrollIndicator() {
       {/* Visual Progress bar */}
       <div className="h-32 w-[1px] bg-white/10 relative overflow-hidden mb-2">
         <div 
-          className="absolute top-0 right-0 w-full bg-gold transition-all duration-75"
+          className="absolute top-0 right-0 w-full bg-pink-400 transition-all duration-75"
           style={{ height: `${scrollProgress}%` }}
         />
       </div>
@@ -71,8 +71,8 @@ export default function ScrollIndicator() {
           >
             {/* Hover label */}
             <span 
-              className={`font-mono text-[10px] tracking-widest transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 ${
-                isActive ? "opacity-100 text-gold translate-x-0 font-medium" : "text-mauve"
+              className={`font-mono text-xs tracking-widest transition-all duration-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 ${
+                isActive ? "opacity-100 text-pink-400 translate-x-0 font-medium" : "text-purple-300"
               }`}
             >
               {sec.label}
@@ -82,8 +82,8 @@ export default function ScrollIndicator() {
             <div 
               className={`w-1.5 h-1.5 rounded-full transition-all duration-300 border ${
                 isActive 
-                  ? "bg-gold border-gold scale-125" 
-                  : "bg-transparent border-white/30 group-hover:border-gold/60"
+                  ? "bg-pink-400 border-pink-400 scale-125" 
+                  : "bg-transparent border-white/30 group-hover:border-pink-400/60"
               }`}
             />
           </button>

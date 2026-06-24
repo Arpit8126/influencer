@@ -10,7 +10,7 @@ export const influencerData = {
   followingSub: "Following",
   engagementRate: "5.8%",
   engagementSub: "Average Engagement",
-  bioTitle: "Being me 🧿 | Beauty • Lifestyle • Skincare",
+  bioTitle: "Being me | Beauty • Lifestyle • Skincare",
   bioText: "Based in India, Divya Rana is a leading beauty, lifestyle, and skincare creator. With a highly engaged audience of 34K+ followers, she focuses on translating product science into elegant visual storytelling. Her platforms are designed for premium integrations, blending high-end product aesthetics with authentic audience connections.",
   instagramUrl: "https://www.instagram.com/rana_divu098/",
   email: "divyarana0098@gmail.com",
@@ -99,63 +99,63 @@ export const influencerData = {
     }
   ],
 
-  // 7 Instagram Reels mapped exactly to your screenshots as thumbnails
+  // 7 Instagram Reels with Streamable video embed + local thumbnails as fallback
   instagramReels: [
     {
       id: 1,
       title: "Lip Secret Routine",
-      thumbnailUrl: "/images/collab/sponsers1.png", // Character Revolution Lipstick
+      thumbnailUrl: "/images/thumbnail/1.png",
+      streamableUrl: "https://streamable.com/e/lc4zz4?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZ5K6NUh200/",
-      views: "245K",
-      caption: "POV: You found the ultimate 2-in-1 lip secret 💄 @characterpaarisindia"
+      views: "245K"
     },
     {
       id: 2,
       title: "Morning Skincare Glow",
-      thumbnailUrl: "/images/collab/sponsers2.png", // Dot & Key Sunscreen
+      thumbnailUrl: "/images/thumbnail/2.png",
+      streamableUrl: "https://streamable.com/e/srkmgr?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZ2eGnCBjRk/",
-      views: "184K",
-      caption: "Morning skincare essentials with my favorite hydration formulas. 💦"
+      views: "184K"
     },
     {
       id: 3,
       title: "Dewy Base Tutorial",
-      thumbnailUrl: "/images/collab/sponsers3.png", // CosIQ Sunscreen
+      thumbnailUrl: "/images/thumbnail/3.png",
+      streamableUrl: "https://streamable.com/e/rt9qg5?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZxeLudhMX7/",
-      views: "310K",
-      caption: "Step-by-step dewy face setting masterclass for dry skin. ✨"
+      views: "310K"
     },
     {
       id: 4,
       title: "Skin Rejuvenation",
-      thumbnailUrl: "/images/collab/sponsers4.png", // WishCare Lipbalm
+      thumbnailUrl: "/images/thumbnail/4.png",
+      streamableUrl: "https://streamable.com/e/o5ou7a?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZPdAqlB5XK/",
-      views: "295K",
-      caption: "Restoring the skin barrier. Science-backed formulation review. 🧪"
+      views: "295K"
     },
     {
       id: 5,
       title: "Night Routine Essentials",
-      thumbnailUrl: "/images/about-lifestyle.png", // Lifestyle shot
+      thumbnailUrl: "/images/thumbnail/5.png",
+      streamableUrl: "https://streamable.com/e/dynufb?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZuxB30BS1P/",
-      views: "196K",
-      caption: "Night-time skin recovery steps. Clean beauty products."
+      views: "196K"
     },
     {
       id: 6,
       title: "Glass Skin Secret",
-      thumbnailUrl: "/images/hero-portrait.png", // Portrait shot
+      thumbnailUrl: "/images/thumbnail/6.png",
+      streamableUrl: "https://streamable.com/e/ixk1fj?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZsTcA1BI2Q/",
-      views: "288K",
-      caption: "Unlocking the Korean glass skin effect in three simple steps."
+      views: "288K"
     },
     {
       id: 7,
       title: "Vibrant Lips Editorial",
-      thumbnailUrl: "/images/collab/sponsers1.png", // wrap Character
+      thumbnailUrl: "/images/thumbnail/7.png",
+      streamableUrl: "https://streamable.com/e/ppogev?autoplay=1&muted=1",
       link: "https://www.instagram.com/reel/DZlsY9RBzEx/",
-      views: "340K",
-      caption: "High-pigment matte swatches. Perfect shade matching. 💋"
+      views: "340K"
     }
   ],
 

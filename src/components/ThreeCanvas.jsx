@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import gsap from "gsap";
 
 export default function ThreeCanvas({ imageUrl }) {
   const containerRef = useRef(null);
@@ -56,13 +55,27 @@ export default function ThreeCanvas({ imageUrl }) {
     const bgParticleCount = 150;
     const bgGeometry = new THREE.BufferGeometry();
     const bgPositions = new Float32Array(bgParticleCount * 3);
+    const bgColors = new Float32Array(bgParticleCount * 3);
     const bgSpeeds = [];
 
-    for (let i = 0; i < bgParticleCount * 3; i += 3) {
+    const palette = [
+      new THREE.Color(0xfb7185), // Rose pink
+      new THREE.Color(0xfdba74), // Dewy peach
+      new THREE.Color(0xc084fc), // Lavender/Violet
+      new THREE.Color(0x2dd4bf)  // Turquoise glow
+    ];
+
+    for (let i = 0; i < bgParticleCount; i++) {
+      const idx = i * 3;
       // Sparser distribution in 3D
-      bgPositions[i] = (Math.random() - 0.5) * 6; // X
-      bgPositions[i + 1] = (Math.random() - 0.5) * 6; // Y
-      bgPositions[i + 2] = (Math.random() - 0.5) * 4; // Z
+      bgPositions[idx] = (Math.random() - 0.5) * 6; // X
+      bgPositions[idx + 1] = (Math.random() - 0.5) * 6; // Y
+      bgPositions[idx + 2] = (Math.random() - 0.5) * 4; // Z
+
+      const color = palette[Math.floor(Math.random() * palette.length)];
+      bgColors[idx] = color.r;
+      bgColors[idx + 1] = color.g;
+      bgColors[idx + 2] = color.b;
 
       bgSpeeds.push({
         x: (Math.random() - 0.5) * 0.002,
@@ -72,13 +85,14 @@ export default function ThreeCanvas({ imageUrl }) {
     }
 
     bgGeometry.setAttribute("position", new THREE.BufferAttribute(bgPositions, 3));
+    bgGeometry.setAttribute("color", new THREE.BufferAttribute(bgColors, 3));
 
     const bgMaterial = new THREE.PointsMaterial({
-      size: 0.06,
+      size: 0.065,
       map: particleTexture,
       transparent: true,
-      color: 0xc9a96e, // Rose gold
-      opacity: 0.45,
+      vertexColors: true,
+      opacity: 0.55,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -91,6 +105,7 @@ export default function ThreeCanvas({ imageUrl }) {
     const haloParticleCount = 800;
     const haloGeometry = new THREE.BufferGeometry();
     const haloPositions = new Float32Array(haloParticleCount * 3);
+    const haloColors = new Float32Array(haloParticleCount * 3);
     const haloAngles = new Float32Array(haloParticleCount);
     const haloRadii = new Float32Array(haloParticleCount);
     
@@ -107,16 +122,34 @@ export default function ThreeCanvas({ imageUrl }) {
       haloPositions[idx] = Math.cos(angle) * radius; // X
       haloPositions[idx + 1] = Math.sin(angle) * radius; // Y
       haloPositions[idx + 2] = (Math.random() - 0.5) * 0.3; // Z (minor depth spread)
+
+      // Gradient color along the ring
+      const colorProgress = i / haloParticleCount;
+      let ringColor;
+      if (colorProgress < 0.25) {
+        ringColor = new THREE.Color().lerpColors(palette[0], palette[1], colorProgress / 0.25);
+      } else if (colorProgress < 0.5) {
+        ringColor = new THREE.Color().lerpColors(palette[1], palette[2], (colorProgress - 0.25) / 0.25);
+      } else if (colorProgress < 0.75) {
+        ringColor = new THREE.Color().lerpColors(palette[2], palette[3], (colorProgress - 0.5) / 0.25);
+      } else {
+        ringColor = new THREE.Color().lerpColors(palette[3], palette[0], (colorProgress - 0.75) / 0.25);
+      }
+
+      haloColors[idx] = ringColor.r;
+      haloColors[idx + 1] = ringColor.g;
+      haloColors[idx + 2] = ringColor.b;
     }
 
     haloGeometry.setAttribute("position", new THREE.BufferAttribute(haloPositions, 3));
+    haloGeometry.setAttribute("color", new THREE.BufferAttribute(haloColors, 3));
 
     const haloMaterial = new THREE.PointsMaterial({
       size: 0.045,
       map: particleTexture,
       transparent: true,
-      color: 0xc9a96e, // Rose gold
-      opacity: 0.8,
+      vertexColors: true,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
@@ -169,15 +202,23 @@ export default function ThreeCanvas({ imageUrl }) {
         
         vec4 color = texture2D(uTexture, uv);
         
-        // 2. Gold reflective sweep (spotlight reflection)
+        // 2. Multicolored Holographic iridescent light sweep (spotlight reflection)
         vec2 lightPos = uMouse * 0.5 + 0.5;
         float distToLight = distance(uv, lightPos);
-        float sheen = smoothstep(0.4, 0.0, distToLight) * 0.14 * uHover;
-        vec3 goldTint = vec3(0.79, 0.66, 0.43); // #c9a96e
+        float sheen = smoothstep(0.45, 0.0, distToLight) * 0.16 * uHover;
         
-        // Global ambient gold tint on hover
-        vec3 warmBase = color.rgb + (goldTint * 0.03 * uHover);
-        vec3 finalColor = warmBase + (goldTint * sheen);
+        // Dynamic iridescent gradient based on UV position and time
+        vec3 colorPink = vec3(0.98, 0.44, 0.52); // #fb7185
+        vec3 colorPeach = vec3(0.99, 0.73, 0.45); // #fdba74
+        vec3 colorViolet = vec3(0.75, 0.52, 0.99); // #c084fc
+        
+        // Interpolate colors across the sweep gradient
+        vec3 sweepColor = mix(colorPink, colorPeach, sin(uv.x * 3.14 + uTime * 0.5) * 0.5 + 0.5);
+        sweepColor = mix(sweepColor, colorViolet, cos(uv.y * 3.14 - uTime * 0.5) * 0.5 + 0.5);
+        
+        // Add subtle constant warm glow on hover
+        vec3 warmBase = color.rgb + (sweepColor * 0.04 * uHover);
+        vec3 finalColor = warmBase + (sweepColor * sheen);
         
         // 3. Edge vignette fade to avoid harsh card boundaries
         float borderFadeX = smoothstep(0.0, 0.06, uv.x) * smoothstep(1.0, 0.94, uv.x);
@@ -283,16 +324,14 @@ export default function ThreeCanvas({ imageUrl }) {
       portraitMaterial.uniforms.uMouse.value.x += (portraitMouse.targetX - portraitMaterial.uniforms.uMouse.value.x) * 0.08;
       portraitMaterial.uniforms.uMouse.value.y += (portraitMouse.targetY - portraitMaterial.uniforms.uMouse.value.y) * 0.08;
 
-      // Local 3D mesh tilt inside WebGL scene (corresponds to degrees tilted outside)
-      portraitMesh.rotation.y = portraitMaterial.uniforms.uMouse.value.x * 0.18;
-      portraitMesh.rotation.x = -portraitMaterial.uniforms.uMouse.value.y * 0.15;
+      // Portrait mesh fully locked — no rotation, no float, no movement
+      portraitMesh.rotation.y = 0;
+      portraitMesh.rotation.x = 0;
+      portraitMesh.position.y = 0;
 
-      // Y-axis breathing float displacement
-      portraitMesh.position.y = Math.sin(elapsedTime * 1.2) * 0.06;
-
-      // 4. Camera parallax based on mouse
-      camera.position.x = mouse.x * 0.8;
-      camera.position.y = mouse.y * 0.8;
+      // Camera fixed — no mouse parallax so image never drifts
+      camera.position.x = 0;
+      camera.position.y = 0;
       camera.lookAt(scene.position);
 
       renderer.render(scene, camera);
@@ -316,46 +355,17 @@ export default function ThreeCanvas({ imageUrl }) {
     const resizeObserver = new ResizeObserver(() => handleResize());
     resizeObserver.observe(container);
 
-    // Dynamic Hover Handlers to Tilt Wrapper and Update Shaders
+    // Dynamic Hover Handlers - Fixed hero image, no hover effects
     const handlePortraitMove = (e) => {
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-
-      // Normalized deltas (-1 to 1)
-      const dx = (x - centerX) / centerX;
-      const dy = (y - centerY) / centerY;
-
-      portraitMouse.targetX = dx;
-      portraitMouse.targetY = -dy;
-      targetHover = 1.0;
-
-      // 3D Tilt the portrait HTML wrapper container in perfect sync with WebGL mesh
-      gsap.to(portraitWrapperRef.current, {
-        rotateY: dx * 10,
-        rotateX: -dy * 10,
-        transformPerspective: 1000,
-        ease: "power2.out",
-        duration: 0.5,
-        overwrite: "auto"
-      });
+      portraitMouse.targetX = 0;
+      portraitMouse.targetY = 0;
+      targetHover = 0.0;
     };
 
     const handlePortraitLeave = () => {
       portraitMouse.targetX = 0;
       portraitMouse.targetY = 0;
       targetHover = 0.0;
-
-      gsap.to(portraitWrapperRef.current, {
-        rotateY: 0,
-        rotateX: 0,
-        ease: "power3.out",
-        duration: 0.8,
-        overwrite: "auto"
-      });
     };
 
     container.addEventListener("mousemove", handlePortraitMove);
@@ -422,7 +432,7 @@ export default function ThreeCanvas({ imageUrl }) {
 
         {/* Layer 3: Dynamic overlay label badge */}
         <div 
-          className="absolute -bottom-3 -right-3 bg-gold text-background font-mono text-[9px] tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-gold/40 flex items-center space-x-1"
+          className="absolute -bottom-3 -right-3 bg-pink-500 text-background font-mono text-xs tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-pink-400/40 flex items-center space-x-1"
           style={{ transform: "translateZ(30px)" }}
         >
           <span>DIVYA RANA</span>

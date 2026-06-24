@@ -20,8 +20,8 @@ export default function BrandForm() {
   // Field focus effects using GSAP
   const handleFocus = (e) => {
     gsap.to(e.target, {
-      borderColor: "#c9a96e",
-      boxShadow: "0 0 12px rgba(201, 169, 110, 0.2)",
+      borderColor: "#fb7185",
+      boxShadow: "0 0 12px rgba(251, 113, 133, 0.22)",
       duration: 0.3,
       ease: "power2.out"
     });
@@ -30,7 +30,7 @@ export default function BrandForm() {
   const handleBlur = (e) => {
     gsap.to(e.target, {
       borderColor: "rgba(245, 239, 230, 0.1)",
-      boxShadow: "0 0 0px rgba(201, 169, 110, 0)",
+      boxShadow: "0 0 0px rgba(251, 113, 133, 0)",
       duration: 0.3,
       ease: "power2.out"
     });
@@ -128,12 +128,12 @@ export default function BrandForm() {
       id="brand-inquiry-form-card"
     >
       {/* Glow background ornament */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-gold/5 rounded-full filter blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-pink-500/5 rounded-full filter blur-3xl pointer-events-none" />
 
       {status !== "success" ? (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col space-y-2">
-            <label htmlFor="brandName" className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+            <label htmlFor="brandName" className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
               Brand Name
             </label>
             <input
@@ -151,7 +151,7 @@ export default function BrandForm() {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label htmlFor="email" className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+            <label htmlFor="email" className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
               Email Address
             </label>
             <input
@@ -170,7 +170,7 @@ export default function BrandForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="flex flex-col space-y-2">
-              <label htmlFor="campaignType" className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+              <label htmlFor="campaignType" className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
                 Campaign Type
               </label>
               <select
@@ -190,7 +190,7 @@ export default function BrandForm() {
             </div>
 
             <div className="flex flex-col space-y-2">
-              <label htmlFor="budgetRange" className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+              <label htmlFor="budgetRange" className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
                 Budget Range
               </label>
               <select
@@ -211,7 +211,7 @@ export default function BrandForm() {
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label htmlFor="message" className="font-mono text-[9px] text-mauve tracking-widest uppercase">
+            <label htmlFor="message" className="font-sans text-xs font-semibold text-purple-300 tracking-[0.16em] uppercase">
               Campaign Details
             </label>
             <textarea
@@ -232,13 +232,13 @@ export default function BrandForm() {
             type="submit"
             disabled={status === "sending"}
             id="brand-inquiry-submit-btn"
-            className="w-full bg-gold hover:bg-gold-dark text-background font-mono text-xs tracking-widest uppercase py-4 px-6 rounded-full font-semibold transition-all duration-300 transform active:scale-[0.98] border border-gold disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-pink-500 to-coral text-background font-sans text-xs font-bold tracking-[0.16em] uppercase py-4.5 px-6 rounded-full transition-all duration-300 transform active:scale-[0.98] border border-pink-400/30 hover:shadow-lg hover:shadow-pink-500/15 disabled:opacity-50"
           >
             {status === "sending" ? "TRANSMITTING..." : "SEND INQUIRY"}
           </button>
           
           {status === "error" && (
-            <p className="text-red-400 font-mono text-[10px] text-center tracking-wide">
+            <p className="text-red-400 font-sans text-xs text-center tracking-wide font-semibold">
               An error occurred. Please try again or email direct at {influencerData.email}
             </p>
           )}
@@ -247,7 +247,7 @@ export default function BrandForm() {
         /* Satisfying GSAP Checkmark success screen */
         <div className="py-12 flex flex-col items-center justify-center text-center space-y-6">
           <svg
-            className="w-24 h-24 text-gold"
+            className="w-24 h-24 text-pink-400"
             viewBox="0 0 100 100"
             fill="none"
             stroke="currentColor"
@@ -271,15 +271,15 @@ export default function BrandForm() {
           </svg>
           
           <div className="space-y-2">
-            <h3 className="text-2xl font-playfair font-medium text-cream">
+            <h3 className="text-2xl font-italiana font-medium text-cream">
               Inquiry Transmitted
             </h3>
-            <p className="text-sm text-mauve max-w-sm mx-auto leading-relaxed">
+            <p className="text-sm text-purple-300 max-w-sm mx-auto leading-relaxed font-sans">
               Your partnership campaign brief was sent successfully. Divya will review and get back to your team within 48 business hours.
             </p>
           </div>
           
-          <span className="font-mono text-[8px] text-white/30 tracking-widest">
+          <span className="font-sans text-xs text-white/40 tracking-[0.14em] font-semibold">
             RETURNING TO FORM IN A MOMENT...
           </span>
         </div>
