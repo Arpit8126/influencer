@@ -12,11 +12,12 @@ const isMobileDevice = () =>
 
 // ─── Unified Reel Card ──────────────────────────────────────────────────────
 // Iframe embed that preloads silently in the background when close to viewport.
-function ReelCard({ reel }) {
+function ReelCard({ reel, isMobile }) {
   const [showVideo, setShowVideo] = useState(false);
   const cardRef = useRef(null);
 
   useEffect(() => {
+    if (isMobile) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -28,13 +29,13 @@ function ReelCard({ reel }) {
     );
     if (cardRef.current) observer.observe(cardRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobile]);
 
   return (
     <div
       ref={cardRef}
-      onMouseEnter={!showVideo ? () => setShowVideo(true) : undefined}
-      onTouchStart={!showVideo ? () => setShowVideo(true) : undefined}
+      onMouseEnter={(!isMobile && !showVideo) ? () => setShowVideo(true) : undefined}
+      onClick={isMobile ? () => window.open(reel.link, "_blank") : undefined}
       className="reel-phone-animate flex-shrink-0 w-[270px] sm:w-[290px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
     >
       {/* Phone notch */}
@@ -55,7 +56,7 @@ function ReelCard({ reel }) {
       </a>
 
       {/* Video Iframe (Rendered directly in DOM when active, no wrapper divs to prevent pointer-events bugs on mobile Safari) */}
-      {showVideo ? (
+      {!isMobile && showVideo ? (
         <iframe
           allow="fullscreen; autoplay"
           allowFullScreen
@@ -64,19 +65,36 @@ function ReelCard({ reel }) {
           style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block", zIndex: 10 }}
         />
       ) : (
-        /* Thumbnail while buffering */
-        <img
-          src={reel.thumbnailUrl}
-          alt={reel.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 20 }}
-          draggable="false"
-          loading="lazy"
-        />
+        /* Thumbnail while buffering or on mobile */
+        <>
+          <img
+            src={reel.thumbnailUrl}
+            alt={reel.title}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 20 }}
+            draggable="false"
+            loading="lazy"
+          />
+          {/* Mobile Overlay Call-to-action */}
+          {isMobile && (
+            <div 
+              className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 z-30 select-none pointer-events-none"
+            >
+              <div className="flex flex-col items-center space-y-2 bg-black/75 backdrop-blur-md border border-white/15 px-6 py-4 rounded-2xl shadow-xl active:scale-95 transition-transform duration-200">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 via-rose-500 to-yellow-500 flex items-center justify-center text-white shadow-lg animate-pulse">
+                  <Instagram className="w-6 h-6" />
+                </div>
+                <span className="font-sans text-[10px] tracking-[0.16em] font-bold text-white uppercase text-center mt-1">
+                  Watch on Instagram
+                </span>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Bottom bar — ONLY show when video is NOT active/playing */}
-      {!showVideo && (
+      {(!showVideo || isMobile) && (
         <div
           className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none select-none"
           style={{ zIndex: 40 }}
@@ -215,7 +233,7 @@ export default function ReelsGallery() {
           id="reels-scroller-row"
         >
           {influencerData.instagramReels.map((reel) => (
-            <ReelCard key={reel.id} reel={reel} />
+            <ReelCard key={reel.id} reel={reel} isMobile={isMobile} />
           ))}
         </div>
 

@@ -218,6 +218,7 @@ export default function Carousel3D() {
     canvas.addEventListener("touchstart", onPointerDown, { passive: true });
     canvas.addEventListener("touchmove", onPointerMove, { passive: true });
     window.addEventListener("touchend", onPointerUp);
+    window.addEventListener("touchcancel", onPointerUp);
 
     // Animation loop
     let animationId;
@@ -312,6 +313,7 @@ export default function Carousel3D() {
       }
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchcancel", onPointerUp);
       renderer.dispose();
       cardGeometry.dispose();
       cardMeshes.forEach((mesh) => {
@@ -330,7 +332,7 @@ export default function Carousel3D() {
       <canvas
         ref={canvasRef}
         className="w-full h-full select-none"
-        style={{ touchAction: "none" }}
+        style={{ touchAction: "pan-y" }}
         id="showcase-carousel-canvas"
       />
 

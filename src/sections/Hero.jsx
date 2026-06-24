@@ -178,7 +178,7 @@ export default function Hero() {
         {/* Left Side: Typography & CTAs */}
         <div 
           ref={leftContentRef} 
-          className="lg:col-span-6 flex flex-col justify-center space-y-6 md:space-y-8 select-none order-2 lg:order-1"
+          className="lg:col-span-6 flex flex-col justify-center space-y-6 md:space-y-8 select-none order-1 lg:order-1"
         >
           {/* Follower Badge */}
           <div className="hero-fade-in opacity-0 translate-y-4 flex items-center space-x-3 w-fit">
@@ -237,7 +237,7 @@ export default function Hero() {
         {/* Right Side: Portrait Image & ThreeJS Particles */}
         <div 
           ref={rightContentRef}
-          className="lg:col-span-6 flex justify-center order-1 lg:order-2"
+          className="lg:col-span-6 flex justify-center order-2 lg:order-2"
           data-cursor-text="DRAG"
         >
           <ThreeCanvas imageUrl={influencerData.images.heroPortrait} />
