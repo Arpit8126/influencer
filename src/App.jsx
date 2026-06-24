@@ -10,6 +10,7 @@ import Header from "./components/Header";
 // Page Sections
 import Hero from "./sections/Hero";
 import About from "./sections/About";
+import ReelsGallery from "./sections/ReelsGallery";
 import MediaDeck from "./sections/MediaDeck";
 import Showcase from "./sections/Showcase";
 import Collabs from "./sections/Collabs";
@@ -115,10 +116,11 @@ export default function App() {
         aria-hidden={isLoading}
         style={{ pointerEvents: isLoading ? "none" : "auto" }}
       >
-        {/* Sections */}
+        {/* Sections — order: Hero → About → Gallery → Media → Lookbook → Collabs → Contact */}
         <Header />
         <Hero />
         <About />
+        <ReelsGallery />
         <MediaDeck />
         <Showcase />
         <Collabs />

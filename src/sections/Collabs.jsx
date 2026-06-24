@@ -116,7 +116,7 @@ export default function Collabs() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 select-none">
           <div className="space-y-4">
             <span className="collab-header-animate font-sans text-xs sm:text-sm text-pink-400 tracking-[0.25em] font-semibold uppercase block">
-              05 BRAND COLLABORATIONS
+              06 BRAND COLLABORATIONS
             </span>
             <h2 className="collab-header-animate text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-italiana font-normal leading-tight text-pink-sunset-gradient drop-shadow-[0_0_20px_rgba(251,113,133,0.18)]">
               Campaign Highlights

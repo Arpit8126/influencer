@@ -78,7 +78,7 @@ export default function MediaDeck() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 select-none">
           <div className="space-y-4">
             <span className="deck-fade-in font-sans text-xs sm:text-sm text-pink-400 tracking-[0.25em] font-semibold uppercase block">
-              03 AUDIENCE INSIGHTS & SERVICES
+              04 AUDIENCE INSIGHTS & SERVICES
             </span>
             <h2 className="deck-fade-in text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-italiana font-normal leading-[1.1] text-pink-sunset-gradient drop-shadow-[0_0_20px_rgba(251,113,133,0.18)]">
               Media Portfolio

@@ -5,9 +5,9 @@ import { influencerData } from "../config/content";
 const NAV_ITEMS = [
   { id: "hero", label: "INTRO" },
   { id: "about", label: "BIO" },
+  { id: "gallery", label: "REELS" },
   { id: "mediadeck", label: "MEDIA" },
-  { id: "showcase", label: "WORK" },
-  { id: "reels-scroller-row", label: "GALLERY" },
+  { id: "showcase", label: "LOOKBOOK" },
   { id: "collabs", label: "PARTNERS" },
   { id: "contact", label: "INQUIRE" }
 ];

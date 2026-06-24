@@ -345,36 +345,111 @@ export default function ThreeCanvas({ imageUrl }) {
     };
   }, [imageUrl]);
 
-  // ── Mobile fallback: pure CSS portrait, no WebGL overhead ──
+  // ── Mobile fallback: premium CSS portrait, no WebGL overhead ──
   if (isMobile) {
     return (
       <div
         ref={containerRef}
-        className="relative w-full h-[420px] sm:h-[520px] flex items-center justify-center select-none"
+        className="relative w-full flex items-center justify-center select-none py-10"
+        style={{ minHeight: "520px" }}
       >
-        <div className="relative w-[280px] h-[364px] sm:w-[340px] sm:h-[442px]">
-          {/* Animated glow halo */}
-          <div className="absolute -inset-4 rounded-3xl bg-[radial-gradient(circle,rgba(251,113,133,0.22)_0%,rgba(192,132,252,0.12)_50%,transparent_70%)] blur-2xl animate-pulse" />
-          <div className="absolute inset-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0c0c0c]">
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
-            <img
-              src={imageUrl}
-              alt="Divya Rana portrait"
-              className="w-full h-full object-cover object-center"
-              draggable="false"
-              loading="eager"
-              fetchPriority="high"
-            />
+        {/* Ambient background glow */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <div className="w-[320px] h-[420px] rounded-full bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-teal-400/10 blur-[80px] animate-pulse" />
+        </div>
+
+        {/* Floating glow orbs */}
+        <div className="absolute top-6 -left-6 w-28 h-28 bg-pink-500/25 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-10 -right-6 w-24 h-24 bg-purple-500/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "1.2s" }} />
+        <div className="absolute top-1/2 -right-4 w-16 h-16 bg-teal-400/20 rounded-full blur-xl" />
+
+        {/* Sparkle decorations */}
+        <div className="absolute top-8 right-10 animate-spin-sparkle text-pink-400 opacity-80 z-20">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+        </div>
+        <div className="absolute top-20 left-6 animate-spin-sparkle text-purple-400 opacity-60 z-20" style={{ animationDuration: "20s" }}>
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+        </div>
+        <div className="absolute bottom-14 right-8 animate-spin-sparkle text-teal-400 opacity-50 z-20" style={{ animationDuration: "14s" }}>
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+        </div>
+        <div className="absolute bottom-20 left-10 animate-spin-sparkle text-orange-400 opacity-40 z-20" style={{ animationDuration: "16s" }}>
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+        </div>
+
+        {/* Main portrait card */}
+        <div className="relative z-10 flex flex-col items-center">
+
+          {/* Niche label pill — top */}
+          <div className="mb-3 bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono text-[9px] tracking-[0.22em] uppercase font-bold py-1.5 px-4 rounded-full z-30 shadow-lg">
+            BEAUTY • LIFESTYLE • SKINCARE
           </div>
-          <div className="absolute -bottom-3 -right-3 bg-pink-500 text-background font-mono text-xs tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-pink-400/40 flex items-center space-x-1">
+
+          {/* Gradient border wrapper */}
+          <div
+            className="p-[2.5px] rounded-[1.8rem] shadow-[0_0_50px_rgba(251,113,133,0.35),0_0_100px_rgba(192,132,252,0.2)]"
+            style={{
+              background: "linear-gradient(135deg, #fb7185 0%, #c084fc 50%, #2dd4bf 100%)",
+            }}
+          >
+            {/* Inner card */}
+            <div className="relative w-[272px] h-[354px] sm:w-[310px] sm:h-[403px] rounded-[1.65rem] overflow-hidden bg-[#0c0c0c]">
+
+              {/* Portrait */}
+              <img
+                src={imageUrl}
+                alt="Divya Rana portrait"
+                className="w-full h-full object-cover object-center"
+                draggable="false"
+                loading="eager"
+                fetchPriority="high"
+              />
+
+              {/* Gradient overlay bottom */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0709]/90 via-[#0b0709]/20 to-transparent z-10" />
+
+              {/* Iridescent sheen top-right */}
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-pink-500/6 to-purple-500/10 z-10" />
+
+              {/* Stats chips overlaid on image */}
+              <div className="absolute bottom-3 left-3 right-3 z-20 flex gap-2">
+                <div className="flex-1 rounded-xl border border-pink-500/20 bg-black/55 px-1 py-2 text-center">
+                  <span className="font-italiana text-base text-pink-400 block leading-none mb-0.5">34.1K</span>
+                  <span className="font-sans text-[7px] text-cream/50 tracking-widest uppercase">Followers</span>
+                </div>
+                <div className="flex-1 rounded-xl border border-purple-500/20 bg-black/55 px-1 py-2 text-center">
+                  <span className="font-italiana text-base text-purple-400 block leading-none mb-0.5">5.8%</span>
+                  <span className="font-sans text-[7px] text-cream/50 tracking-widest uppercase">Engage</span>
+                </div>
+                <div className="flex-1 rounded-xl border border-teal-500/20 bg-black/55 px-1 py-2 text-center">
+                  <span className="font-italiana text-base text-teal-400 block leading-none mb-0.5">170</span>
+                  <span className="font-sans text-[7px] text-cream/50 tracking-widest uppercase">Posts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Creator badge — bottom */}
+          <div className="mt-3 bg-gradient-to-r from-pink-500 to-rose-500 text-background font-mono text-[9px] tracking-widest uppercase font-bold py-2 px-5 rounded-full shadow-xl shadow-pink-500/30 border border-pink-400/30 flex items-center space-x-1.5">
+            <span>✦</span>
             <span>DIVYA RANA</span>
-            <span className="opacity-50">•</span>
+            <span className="opacity-60">•</span>
             <span>CREATOR</span>
+            <span>✦</span>
           </div>
         </div>
       </div>
     );
   }
+
 
   return (
     <div
