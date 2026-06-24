@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { influencerData } from "../config/content";
-import { Instagram, Eye } from "lucide-react";
+import { Instagram, Eye, Loader2, AlertCircle } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,89 +11,162 @@ const isMobileDevice = () =>
   (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
 
 // ─── Unified Reel Card ──────────────────────────────────────────────────────
-// Iframe embed that preloads silently in the background when close to viewport.
-function ReelCard({ reel, isMobile }) {
-  const [showVideo, setShowVideo] = useState(false);
+function ReelCard({ reel, isStreamableBlocked }) {
+  const [videoState, setVideoState] = useState("thumbnail"); // 'thumbnail' | 'loading' | 'playing' | 'error'
   const cardRef = useRef(null);
+  const timeoutRef = useRef(null);
 
+  // Clear timeout on unmount
   useEffect(() => {
-    if (isMobile) return;
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const startLoadingVideo = useCallback(() => {
+    if (isStreamableBlocked) return;
+    
+    setVideoState((state) => {
+      if (state === "thumbnail") {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setVideoState((prev) => (prev === "loading" ? "error" : prev));
+        }, 4500); // 4.5s loading timeout
+        return "loading";
+      }
+      return state;
+    });
+  }, [isStreamableBlocked]);
+
+  const handleIframeLoad = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setVideoState("playing");
+  };
+
+  const getStreamableUrl = () => {
+    // Both desktop and mobile: autoplay, mute, controls, loop
+    return `${reel.streamableUrl}&controls=1&loop=1`;
+  };
+
+  // Autoplay on view scroll trigger
+  useEffect(() => {
+    if (isStreamableBlocked) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setShowVideo(true);
+          startLoadingVideo();
           observer.disconnect();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "150px" } // Trigger slightly early
     );
-    if (cardRef.current) observer.observe(cardRef.current);
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
     return () => observer.disconnect();
-  }, [isMobile]);
+  }, [isStreamableBlocked, startLoadingVideo]);
 
   return (
     <div
       ref={cardRef}
-      onMouseEnter={(!isMobile && !showVideo) ? () => setShowVideo(true) : undefined}
-      onClick={isMobile ? () => window.open(reel.link, "_blank") : undefined}
-      className="reel-phone-animate flex-shrink-0 w-[270px] sm:w-[290px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
+      className="reel-phone-animate flex-shrink-0 w-[270px] sm:w-[290px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer"
+      style={{
+        pointerEvents: videoState === "playing" ? "none" : "auto",
+        WebkitMaskImage: "-webkit-radial-gradient(white, black)",
+      }}
     >
       {/* Phone notch */}
       <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-black rounded-full z-30 flex items-center justify-center pointer-events-none">
         <div className="w-2 h-2 rounded-full bg-white/10" />
       </div>
 
-      {/* Instagram Button — Top-Right, always active, small footprint to prevent touch blocking (Desktop only to prevent duplicate indicators on mobile) */}
-      {!isMobile && (
+      {/* Persistent Watch on Instagram CTA Overlay (Always on top of video, except in error state) */}
+      {videoState !== "error" && (
         <a
           href={reel.link}
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-pink-400 hover:bg-pink-500/80 hover:text-white active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
-          title="Open on Instagram"
+          className="absolute z-40 flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full text-pink-400 font-sans text-[10px] font-bold tracking-wider active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto hover:bg-pink-500/80 hover:text-white hover:border-pink-500/30"
+          style={{
+            top: "40px",
+            left: "16px",
+          }}
         >
-          <Instagram className="w-4 h-4" />
-        </a>
-      )}
-
-      {/* Mobile Watch on Instagram Button — Top-Left */}
-      {isMobile && (
-        <a
-          href={reel.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="absolute top-10 left-4 z-50 flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full text-pink-400 font-sans text-[9px] font-bold tracking-wider active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
-        >
-          <Instagram className="w-3.5 h-3.5 text-pink-400" />
+          <Instagram className="w-3.5 h-3.5 text-pink-400 group-hover:text-white" />
           <span>Watch on Instagram</span>
         </a>
       )}
 
-      {/* Video Iframe (Rendered directly in DOM when active, no wrapper divs to prevent pointer-events bugs on mobile Safari) */}
-      {!isMobile && showVideo ? (
+      {/* Thumbnail Image (Always in DOM as base/fallback) */}
+      <img
+        src={reel.thumbnailUrl}
+        alt={reel.title}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+        style={{
+          zIndex: videoState === "playing" ? 5 : 20,
+          opacity: videoState === "playing" ? 0 : 1,
+        }}
+        draggable="false"
+        loading="lazy"
+      />
+
+      {/* Loading Spinner Overlay */}
+      {videoState === "loading" && (
+        <div className="absolute inset-0 z-30 bg-black/40 backdrop-blur-xs flex flex-col items-center justify-center space-y-3 pointer-events-none">
+          <Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
+          <span className="text-[10px] font-mono tracking-widest text-cream/70 uppercase">
+            Loading Reel...
+          </span>
+        </div>
+      )}
+
+      {/* Error / Blocked Overlay */}
+      {(videoState === "error" || (isStreamableBlocked && videoState !== "thumbnail")) && (
+        <div className="absolute inset-0 z-30 bg-black/85 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center space-y-4 pointer-events-auto">
+          <AlertCircle className="w-10 h-10 text-pink-500/80" />
+          <div className="space-y-1">
+            <p className="text-xs font-sans font-bold text-cream">Video Blocked or Unavailable</p>
+            <p className="text-[10px] font-sans text-cream/60 leading-relaxed">
+              {isStreamableBlocked 
+                ? "Your network/ISP is blocking Streamable videos." 
+                : "Unable to stream the reel on this connection."}
+            </p>
+          </div>
+          <a
+            href={reel.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1.5 bg-pink-500/80 hover:bg-pink-600 active:scale-95 text-white font-sans text-[10px] tracking-wider uppercase font-bold py-2 px-4 rounded-full transition-all duration-200 shadow-md cursor-pointer"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            <span>Watch on Instagram</span>
+          </a>
+        </div>
+      )}
+
+      {/* Video Iframe (Rendered when we are loading or playing, absolute positioned) */}
+      {!isStreamableBlocked && (videoState === "loading" || videoState === "playing") && (
         <iframe
           allow="fullscreen; autoplay"
           allowFullScreen
-          src={reel.streamableUrl}
+          src={getStreamableUrl()}
           title={reel.title}
-          style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block", zIndex: 10 }}
-        />
-      ) : (
-        /* Thumbnail while buffering or on mobile */
-        <img
-          src={reel.thumbnailUrl}
-          alt={reel.title}
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 20 }}
-          draggable="false"
-          loading="lazy"
+          onLoad={handleIframeLoad}
+          className="absolute inset-0 w-full h-full border-none transition-opacity duration-500"
+          style={{
+            zIndex: 10,
+            opacity: videoState === "playing" ? 1 : 0,
+            pointerEvents: "auto",
+          }}
         />
       )}
 
-      {/* Bottom bar — ONLY show when video is NOT active/playing */}
-      {(!showVideo || isMobile) && (
+      {/* Bottom bar (Only show when video is NOT active/playing or loading) */}
+      {videoState === "thumbnail" && (
         <div
           className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none select-none"
           style={{ zIndex: 40 }}
@@ -118,28 +191,11 @@ function ReelCard({ reel, isMobile }) {
             </div>
             <div className="flex items-center space-x-1">
               <Instagram className="w-3 h-3 text-pink-400/75" />
-              <span>Open on Instagram</span>
+              <span>Auto-playing...</span>
             </div>
           </div>
         </div>
       )}
-
-      {/* Hover Pill (Desktop Only) — View on Instagram */}
-      <div
-        className="absolute top-10 left-0 right-0 hidden md:flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
-        style={{ zIndex: 50 }}
-      >
-        <a
-          href={reel.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2.5 px-5 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
-        >
-          <Instagram className="w-3 h-3 text-pink-300" />
-          <span>View on Instagram ↗</span>
-        </a>
-      </div>
     </div>
   );
 }
@@ -149,10 +205,34 @@ export default function ReelsGallery() {
   const sectionRef = useRef(null);
   const reelsRowRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [isStreamableBlocked, setIsStreamableBlocked] = useState(false);
 
   useEffect(() => {
     const mobile = isMobileDevice();
     setIsMobile(mobile);
+
+    // Reachability test for Streamable to detect ISP/network blocks
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+
+    // Fetch the actual embed URL directly to avoid any root-domain redirect delay
+    fetch("https://streamable.com/e/lc4zz4", { mode: "no-cors", signal: controller.signal })
+      .then(() => {
+        clearTimeout(timeoutId);
+        setIsStreamableBlocked(false);
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (err.name === "AbortError") {
+          // If it is just a timeout (e.g. slow connection), don't block
+          setIsStreamableBlocked(false);
+          console.warn("Streamable reachability check timed out; assuming not blocked.");
+        } else {
+          // Real connection error (DNS block / reset)
+          setIsStreamableBlocked(true);
+          console.warn("Streamable is blocked or unreachable by network/ISP:", err);
+        }
+      });
 
     gsap.fromTo(
       ".gallery-fade-in",
@@ -200,8 +280,8 @@ export default function ReelsGallery() {
           </div>
           <p className="gallery-fade-in text-sm sm:text-base text-cream/70 max-w-sm font-light leading-relaxed font-sans">
             {isMobile
-              ? "Tap any reel to watch — use the play, pause, or sound buttons at the bottom."
-              : "Hover a card to watch or click \"View on Instagram\" to open the reel natively."}
+              ? "Tap any reel to watch inline with controls. Use the close button (X) to stop playback."
+              : "Hover a card to watch or click \"Watch on Instagram\" to open the reel natively."}
           </p>
         </div>
 
@@ -231,7 +311,12 @@ export default function ReelsGallery() {
           id="reels-scroller-row"
         >
           {influencerData.instagramReels.map((reel) => (
-            <ReelCard key={reel.id} reel={reel} isMobile={isMobile} />
+            <ReelCard
+              key={reel.id}
+              reel={reel}
+              isMobile={isMobile}
+              isStreamableBlocked={isStreamableBlocked}
+            />
           ))}
         </div>
 
