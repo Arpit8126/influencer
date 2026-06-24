@@ -8,11 +8,13 @@ export default defineConfig({
     rollupOptions: {
       output: {
         // Split heavy libraries into separate chunks — loads in parallel
-        manualChunks: {
-          'vendor-three': ['three'],
-          'vendor-gsap': ['gsap'],
-          'vendor-framer': ['framer-motion'],
-          'vendor-react': ['react', 'react-dom'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('three')) return 'vendor-three';
+            if (id.includes('gsap')) return 'vendor-gsap';
+            if (id.includes('framer-motion')) return 'vendor-framer';
+            if (id.includes('react') || id.includes('react-dom')) return 'vendor-react';
+          }
         }
       }
     },

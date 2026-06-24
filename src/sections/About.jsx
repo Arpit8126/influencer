@@ -73,22 +73,27 @@ export default function About() {
         ref={contentRef}
         className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-center z-10"
       >
-        {/* Left Side: Large vertical editorial portrait with Asymmetric frame offset */}
-        <div className="lg:col-span-5 select-none order-2 lg:order-1 flex justify-center relative py-6">
-          <div className="absolute top-0 left-[10%] w-16 h-16 border-t-2 border-l-2 border-pink-500/30 hidden sm:block pointer-events-none" />
-          <div className="absolute bottom-0 right-[10%] w-16 h-16 border-b-2 border-r-2 border-purple-500/30 hidden sm:block pointer-events-none" />
-          
+        {/* Left Side: Large vertical editorial portrait */}
+        <div className="lg:col-span-5 select-none order-2 lg:order-1 flex justify-center py-6">
           <div 
-            className="about-fade-in w-full max-w-sm aspect-[3/4.2] rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative transform lg:-rotate-2 hover:rotate-0 transition-transform duration-500 cursor-none"
-            data-cursor-text="DIVYA"
+            className="about-fade-in relative w-full max-w-sm h-[420px] sm:h-[480px] lg:h-[560px] transform lg:-rotate-2 hover:rotate-0 transition-transform duration-500"
           >
-            <img 
-              src={influencerData.images.aboutLifestyle} 
-              alt="Divya Rana Lifestyle portrait" 
-              className="w-full h-full object-cover filter brightness-[0.9] hover:scale-105 transition-transform duration-700"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#10080c]/60 via-transparent to-transparent pointer-events-none" />
+            {/* Decorative corners — now relative to the actual image card boundary */}
+            <div className="absolute -top-4 -left-4 w-16 h-16 border-t-2 border-l-2 border-pink-500/30 hidden sm:block pointer-events-none" />
+            <div className="absolute -bottom-4 -right-4 w-16 h-16 border-b-2 border-r-2 border-purple-500/30 hidden sm:block pointer-events-none" />
+            
+            <div 
+              className="w-full h-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative cursor-none"
+              data-cursor-text="DIVYA"
+            >
+              <img 
+                src={influencerData.images.aboutLifestyle} 
+                alt="Divya Rana Lifestyle portrait" 
+                className="w-full h-full object-cover object-top filter brightness-[0.9] hover:scale-105 transition-transform duration-700"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#10080c]/60 via-transparent to-transparent pointer-events-none" />
+            </div>
           </div>
         </div>
 

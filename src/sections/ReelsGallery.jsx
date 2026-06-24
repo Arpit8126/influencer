@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { influencerData } from "../config/content";
-import { Instagram, Eye, Play } from "lucide-react";
+import { Instagram, Eye } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -10,62 +10,9 @@ const isMobileDevice = () =>
   typeof window !== "undefined" &&
   (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
 
-// ─── Mobile Reel Card ───────────────────────────────────────────────────────
-// Pure thumbnail → tap to open Instagram. NO iframe, no Streamable dependency.
-function MobileReelCard({ reel }) {
-  return (
-    <a
-      href={reel.link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex-shrink-0 snap-start block group"
-      style={{ width: "190px" }}
-    >
-      <div
-        className="relative w-full rounded-[2rem] overflow-hidden bg-[#0c080a] shadow-xl border-[3px] border-white/8 group-active:border-pink-500/50 transition-all duration-200"
-        style={{ aspectRatio: "9/16" }}
-      >
-        {/* Phone notch */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-2.5 bg-black/80 rounded-full z-30 pointer-events-none" />
-
-        {/* Thumbnail */}
-        <img
-          src={reel.thumbnailUrl}
-          alt={reel.title}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
-
-        {/* Centered Play button */}
-        <div className="absolute inset-0 flex items-center justify-center z-20">
-          <div className="w-14 h-14 rounded-full bg-pink-500/85 flex items-center justify-center shadow-xl shadow-pink-500/40 border-2 border-pink-400/50 group-active:scale-95 transition-transform duration-150">
-            <Play className="w-6 h-6 text-white fill-white ml-0.5" />
-          </div>
-        </div>
-
-        {/* Bottom info */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 z-20">
-          <div className="flex items-center space-x-1 mb-1">
-            <Eye className="w-2.5 h-2.5 text-pink-400/80" />
-            <span className="font-sans text-[9px] text-pink-400/80 tracking-widest">{reel.views}</span>
-          </div>
-          <p className="font-playfair text-sm text-cream leading-snug mb-1.5">{reel.title}</p>
-          <div className="flex items-center space-x-1">
-            <Instagram className="w-2.5 h-2.5 text-pink-400/60" />
-            <span className="font-sans text-[8px] text-white/40 tracking-wider">Open on Instagram ↗</span>
-          </div>
-        </div>
-      </div>
-    </a>
-  );
-}
-
-// ─── Desktop Reel Card ──────────────────────────────────────────────────────
-// Iframe embed that preloads silently in the background.
-function DesktopReelCard({ reel }) {
+// ─── Unified Reel Card ──────────────────────────────────────────────────────
+// Iframe embed that preloads silently in the background when close to viewport.
+function ReelCard({ reel }) {
   const [showVideo, setShowVideo] = useState(false);
   const cardRef = useRef(null);
 
@@ -77,7 +24,7 @@ function DesktopReelCard({ reel }) {
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { rootMargin: "200px" }
     );
     if (cardRef.current) observer.observe(cardRef.current);
     return () => observer.disconnect();
@@ -86,7 +33,7 @@ function DesktopReelCard({ reel }) {
   return (
     <div
       ref={cardRef}
-      className="reel-phone-animate flex-shrink-0 w-[240px] sm:w-[260px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-none"
+      className="reel-phone-animate flex-shrink-0 w-[240px] sm:w-[260px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
     >
       {/* Phone notch */}
       <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-black rounded-full z-30 flex items-center justify-center pointer-events-none">
@@ -154,7 +101,7 @@ function DesktopReelCard({ reel }) {
         </div>
       </div>
 
-      {/* Hover pill — View on Instagram */}
+      {/* Hover/Tap pill — View on Instagram */}
       <div
         className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
         style={{ zIndex: 50 }}
@@ -164,7 +111,7 @@ function DesktopReelCard({ reel }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2 px-4 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-none hover:bg-pink-500/80 transition-colors duration-200"
+          className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2 px-4 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
         >
           <Instagram className="w-3 h-3 text-pink-300" />
           <span>View on Instagram ↗</span>
@@ -261,11 +208,9 @@ export default function ReelsGallery() {
           }}
           id="reels-scroller-row"
         >
-          {influencerData.instagramReels.map((reel) =>
-            isMobile
-              ? <MobileReelCard key={reel.id} reel={reel} />
-              : <DesktopReelCard key={reel.id} reel={reel} />
-          )}
+          {influencerData.instagramReels.map((reel) => (
+            <ReelCard key={reel.id} reel={reel} />
+          ))}
         </div>
 
         {/* Swipe hint on mobile */}

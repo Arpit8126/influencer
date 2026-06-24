@@ -2,60 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { influencerData } from "../config/content";
 
-// Detect touch/mobile — skip WebGL on mobile for performance
-const isMobileDevice = () =>
-  typeof window !== "undefined" &&
-  (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
-
-// ── Mobile fallback: simple CSS horizontal scrollable card grid ──
-function MobileCarousel() {
-  const cards = influencerData.carouselCards;
-  return (
-    <div className="relative w-full">
-      <div className="flex overflow-x-auto gap-4 pb-4 scroll-smooth snap-x snap-mandatory no-scrollbar px-1">
-        {cards.map((card) => (
-          <a
-            key={card.id}
-            href={card.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 w-[180px] sm:w-[200px] snap-start rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group"
-            style={{ aspectRatio: "3/4" }}
-          >
-            <img
-              src={card.imageUrl}
-              alt={card.title}
-              className="w-full h-full object-cover filter brightness-[0.88] group-hover:brightness-100 transition-all duration-300"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              <p className="font-mono text-[9px] text-pink-400 tracking-widest uppercase mb-0.5">{card.category}</p>
-              <p className="font-playfair text-sm text-cream leading-tight">{card.title}</p>
-            </div>
-          </a>
-        ))}
-      </div>
-      <p className="text-center font-mono text-[10px] text-white/30 tracking-widest uppercase mt-3">
-        ← Swipe to explore →
-      </p>
-    </div>
-  );
-}
 
 export default function Carousel3D() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const [hoveredCardTitle, setHoveredCardTitle] = useState("");
   const [hoveredCardCat, setHoveredCardCat] = useState("");
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (isMobileDevice()) {
-      setIsMobile(true);
-      return;
-    }
-
     if (!canvasRef.current || !containerRef.current) return;
 
     const container = containerRef.current;
@@ -78,15 +32,19 @@ export default function Carousel3D() {
       antialias: true
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 768 ? 1.5 : 2));
 
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // Bright scene lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.0);  // Much brighter ambient
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xc9a96e, 2, 10);
+    const pointLight = new THREE.PointLight(0xfff5e0, 4, 12);    // Warm key light — brighter
     pointLight.position.set(0, 2, 3);
     scene.add(pointLight);
+
+    const fillLight = new THREE.PointLight(0xffffff, 3.0, 10);   // Front white fill light
+    fillLight.position.set(0, 0, 5);
+    scene.add(fillLight);
 
     // Carousel Group
     const carouselGroup = new THREE.Group();
@@ -149,8 +107,8 @@ export default function Carousel3D() {
 
     cards.forEach((card, index) => {
       const material = new THREE.MeshStandardMaterial({
-        roughness: 0.2,
-        metalness: 0.1,
+        roughness: 0.05,   // Very smooth — reflects lights vividly
+        metalness: 0.3,    // Slight metalness for bright specular highlights
         side: THREE.DoubleSide
       });
 
@@ -366,11 +324,6 @@ export default function Carousel3D() {
       pointLight.dispose();
     };
   }, []);
-
-  // Show simple CSS grid on mobile
-  if (isMobile) {
-    return <MobileCarousel />;
-  }
 
   return (
     <div ref={containerRef} className="relative w-full h-[500px] flex flex-col justify-center items-center overflow-hidden">
