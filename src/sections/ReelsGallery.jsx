@@ -33,9 +33,9 @@ function ReelCard({ reel }) {
   return (
     <div
       ref={cardRef}
-      onMouseEnter={() => setShowVideo(true)}
-      onTouchStart={() => setShowVideo(true)}
-      className="reel-phone-animate flex-shrink-0 w-[240px] sm:w-[260px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
+      onMouseEnter={!showVideo ? () => setShowVideo(true) : undefined}
+      onTouchStart={!showVideo ? () => setShowVideo(true) : undefined}
+      className="reel-phone-animate flex-shrink-0 w-[270px] sm:w-[290px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
     >
       {/* Phone notch */}
       <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-black rounded-full z-30 flex items-center justify-center pointer-events-none">
@@ -105,24 +105,22 @@ function ReelCard({ reel }) {
         </div>
       )}
 
-      {/* Hover/Tap pill — View on Instagram (ONLY show when video is NOT active/playing) */}
-      {!showVideo && (
-        <div
-          className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
-          style={{ zIndex: 50 }}
+      {/* Hover/Tap pill — View on Instagram (Always rendered, visible on hover/focus) */}
+      <div
+        className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
+        style={{ zIndex: 50 }}
+      >
+        <a
+          href={reel.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2.5 px-5 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
         >
-          <a
-            href={reel.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2 px-4 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
-          >
-            <Instagram className="w-3 h-3 text-pink-300" />
-            <span>View on Instagram ↗</span>
-          </a>
-        </div>
-      )}
+          <Instagram className="w-3 h-3 text-pink-300" />
+          <span>View on Instagram ↗</span>
+        </a>
+      </div>
     </div>
   );
 }
@@ -183,8 +181,8 @@ export default function ReelsGallery() {
           </div>
           <p className="gallery-fade-in text-sm sm:text-base text-cream/70 max-w-sm font-light leading-relaxed font-sans">
             {isMobile
-              ? "Tap any reel to watch on Instagram — no buffering, instant playback."
-              : "Hover a card and tap \"View on Instagram\" to open the reel. Streamable previews load automatically."}
+              ? "Tap any reel to watch — use the play, pause, or sound buttons at the bottom."
+              : "Hover a card to watch or click \"View on Instagram\" to open the reel natively."}
           </p>
         </div>
 
