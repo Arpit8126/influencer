@@ -54,27 +54,17 @@ function ReelCard({ reel }) {
         <Instagram className="w-4 h-4" />
       </a>
 
-      {/* Iframe — always in DOM, hidden until viewport */}
-      <div
-        style={{
-          position: "absolute", inset: 0, zIndex: 10,
-          visibility: showVideo ? "visible" : "hidden",
-          pointerEvents: showVideo ? "auto" : "none",
-          opacity: showVideo ? 1 : 0,
-          transition: "opacity 0.5s ease",
-        }}
-      >
+      {/* Video Iframe (Rendered directly in DOM when active, no wrapper divs to prevent pointer-events bugs on mobile Safari) */}
+      {showVideo ? (
         <iframe
           allow="fullscreen; autoplay"
           allowFullScreen
-          src={showVideo ? reel.streamableUrl : "about:blank"}
+          src={reel.streamableUrl}
           title={reel.title}
-          style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block" }}
+          style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block", zIndex: 10 }}
         />
-      </div>
-
-      {/* Thumbnail while buffering */}
-      {!showVideo && (
+      ) : (
+        /* Thumbnail while buffering */
         <img
           src={reel.thumbnailUrl}
           alt={reel.title}
