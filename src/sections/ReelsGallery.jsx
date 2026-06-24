@@ -12,15 +12,9 @@ const isMobileDevice = () =>
 
 // ─── Unified Reel Card ──────────────────────────────────────────────────────
 // Iframe embed that preloads silently in the background when close to viewport.
-function ReelCard({ reel, isMobile, isActive }) {
+function ReelCard({ reel, isMobile }) {
   const [showVideo, setShowVideo] = useState(false);
   const cardRef = useRef(null);
-
-  useEffect(() => {
-    if (isMobile) {
-      setShowVideo(isActive);
-    }
-  }, [isMobile, isActive]);
 
   useEffect(() => {
     if (isMobile) return;
@@ -40,7 +34,6 @@ function ReelCard({ reel, isMobile, isActive }) {
   return (
     <div
       ref={cardRef}
-      data-reel-id={reel.id}
       onMouseEnter={(!isMobile && !showVideo) ? () => setShowVideo(true) : undefined}
       onClick={isMobile ? () => window.open(reel.link, "_blank") : undefined}
       className="reel-phone-animate flex-shrink-0 w-[270px] sm:w-[290px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
@@ -63,7 +56,7 @@ function ReelCard({ reel, isMobile, isActive }) {
       </a>
 
       {/* Video Iframe (Rendered directly in DOM when active, no wrapper divs to prevent pointer-events bugs on mobile Safari) */}
-      {showVideo ? (
+      {!isMobile && showVideo ? (
         <iframe
           allow="fullscreen; autoplay"
           allowFullScreen
@@ -72,7 +65,7 @@ function ReelCard({ reel, isMobile, isActive }) {
           style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block", zIndex: 10 }}
         />
       ) : (
-        /* Thumbnail while buffering or inactive on mobile */
+        /* Thumbnail while buffering or on mobile */
         <>
           <img
             src={reel.thumbnailUrl}
@@ -82,13 +75,18 @@ function ReelCard({ reel, isMobile, isActive }) {
             draggable="false"
             loading="lazy"
           />
-          {/* Subtle mobile overlay for inactive reels */}
+          {/* Mobile Overlay Call-to-action */}
           {isMobile && (
             <div 
-              className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 z-30 select-none pointer-events-none"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-black/35 z-30 select-none pointer-events-none"
             >
-              <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center text-white shadow-lg">
-                <Instagram className="w-5 h-5 text-pink-300" />
+              <div className="flex flex-col items-center space-y-3 bg-black/65 backdrop-blur-md border border-white/15 px-6 py-5 rounded-[1.5rem] shadow-2xl">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-pink-500 via-rose-500 to-yellow-500 flex items-center justify-center text-white shadow-lg animate-pulse">
+                  <Instagram className="w-6 h-6" />
+                </div>
+                <span className="font-sans text-[10px] tracking-[0.22em] font-extrabold text-white uppercase text-center mt-1">
+                  Watch on Instagram
+                </span>
               </div>
             </div>
           )}
@@ -152,7 +150,6 @@ export default function ReelsGallery() {
   const sectionRef = useRef(null);
   const reelsRowRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [activeReelId, setActiveReelId] = useState(1);
 
   useEffect(() => {
     const mobile = isMobileDevice();
@@ -179,46 +176,6 @@ export default function ReelsGallery() {
       );
     }
   }, []);
-
-  useEffect(() => {
-    if (!isMobile) return;
-
-    const container = reelsRowRef.current;
-    if (!container) return;
-
-    let scrollTimeout;
-    const handleScroll = () => {
-      if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
-      scrollTimeout = requestAnimationFrame(() => {
-        const containerCenter = container.scrollLeft + container.clientWidth / 2;
-        const cards = container.querySelectorAll(".reel-phone-animate");
-        let closestReelId = null;
-        let minDistance = Infinity;
-
-        cards.forEach((card) => {
-          const cardCenter = card.offsetLeft + card.clientWidth / 2;
-          const distance = Math.abs(containerCenter - cardCenter);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestReelId = Number(card.getAttribute("data-reel-id"));
-          }
-        });
-
-        if (closestReelId !== null) {
-          setActiveReelId(closestReelId);
-        }
-      });
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    // Initial run
-    handleScroll();
-
-    return () => {
-      container.removeEventListener("scroll", handleScroll);
-      if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
-    };
-  }, [isMobile]);
 
   return (
     <section
@@ -276,12 +233,7 @@ export default function ReelsGallery() {
           id="reels-scroller-row"
         >
           {influencerData.instagramReels.map((reel) => (
-            <ReelCard 
-              key={reel.id} 
-              reel={reel} 
-              isMobile={isMobile} 
-              isActive={activeReelId === reel.id} 
-            />
+            <ReelCard key={reel.id} reel={reel} isMobile={isMobile} />
           ))}
         </div>
 
