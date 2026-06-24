@@ -2,13 +2,60 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { influencerData } from "../config/content";
 
+// Detect touch/mobile — skip WebGL on mobile for performance
+const isMobileDevice = () =>
+  typeof window !== "undefined" &&
+  (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
+
+// ── Mobile fallback: simple CSS horizontal scrollable card grid ──
+function MobileCarousel() {
+  const cards = influencerData.carouselCards;
+  return (
+    <div className="relative w-full">
+      <div className="flex overflow-x-auto gap-4 pb-4 scroll-smooth snap-x snap-mandatory no-scrollbar px-1">
+        {cards.map((card) => (
+          <a
+            key={card.id}
+            href={card.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 w-[180px] sm:w-[200px] snap-start rounded-2xl overflow-hidden border border-white/10 shadow-lg relative group"
+            style={{ aspectRatio: "3/4" }}
+          >
+            <img
+              src={card.imageUrl}
+              alt={card.title}
+              className="w-full h-full object-cover filter brightness-[0.88] group-hover:brightness-100 transition-all duration-300"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              <p className="font-mono text-[9px] text-pink-400 tracking-widest uppercase mb-0.5">{card.category}</p>
+              <p className="font-playfair text-sm text-cream leading-tight">{card.title}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      <p className="text-center font-mono text-[10px] text-white/30 tracking-widest uppercase mt-3">
+        ← Swipe to explore →
+      </p>
+    </div>
+  );
+}
+
 export default function Carousel3D() {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const [hoveredCardTitle, setHoveredCardTitle] = useState("");
   const [hoveredCardCat, setHoveredCardCat] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (isMobileDevice()) {
+      setIsMobile(true);
+      return;
+    }
+
     if (!canvasRef.current || !containerRef.current) return;
 
     const container = containerRef.current;
@@ -45,30 +92,26 @@ export default function Carousel3D() {
     const carouselGroup = new THREE.Group();
     scene.add(carouselGroup);
 
-    // Fallback Texture Creator (draws a luxury placeholder onto canvas if image fail/CORS block)
+    // Fallback Texture
     const createFallbackTexture = (title, category) => {
       const cardCanvas = document.createElement("canvas");
       cardCanvas.width = 512;
       cardCanvas.height = 640;
       const ctx = cardCanvas.getContext("2d");
 
-      // Background
       const gradient = ctx.createLinearGradient(0, 0, 0, 640);
-      gradient.addColorStop(0, "#1a0f14"); // luxuryMauve
-      gradient.addColorStop(1, "#0a0a0a"); // black
+      gradient.addColorStop(0, "#1a0f14");
+      gradient.addColorStop(1, "#0a0a0a");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 512, 640);
 
-      // Gold border
       ctx.strokeStyle = "#c9a96e";
       ctx.lineWidth = 6;
       ctx.strokeRect(10, 10, 492, 620);
 
-      // Content
       ctx.fillStyle = "rgba(201, 169, 110, 0.1)";
       ctx.fillRect(15, 15, 482, 610);
 
-      // Accent lines
       ctx.strokeStyle = "rgba(201, 169, 110, 0.2)";
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -76,32 +119,28 @@ export default function Carousel3D() {
       ctx.lineTo(482, 200);
       ctx.stroke();
 
-      // Brand/Category Label
       ctx.fillStyle = "#c9a96e";
-      ctx.font = "bold 20px 'Space Mono', monospace";
+      ctx.font = "bold 20px monospace";
       ctx.textAlign = "center";
       ctx.fillText(category.toUpperCase(), 256, 120);
 
-      // Title
       ctx.fillStyle = "#f5efe6";
-      ctx.font = "italic 32px 'Playfair Display', serif";
+      ctx.font = "italic 32px serif";
       ctx.fillText(title, 256, 320);
 
-      // Call to action
       ctx.fillStyle = "rgba(245, 239, 230, 0.6)";
-      ctx.font = "14px 'Space Mono', monospace";
+      ctx.font = "14px monospace";
       ctx.fillText("TAP TO VIEW POST", 256, 540);
 
-      const texture = new THREE.CanvasTexture(cardCanvas);
-      return texture;
+      return new THREE.CanvasTexture(cardCanvas);
     };
 
     // Cards Setup
     const cards = influencerData.carouselCards;
     const N = cards.length;
-    const radius = 1.9; // Distance from center - tightened gaps
-    const cardWidth = 1.45; // Increased width
-    const cardHeight = 1.9; // Increased height
+    const radius = 1.9;
+    const cardWidth = 1.45;
+    const cardHeight = 1.9;
     const cardMeshes = [];
     const textureLoader = new THREE.TextureLoader();
     textureLoader.crossOrigin = "anonymous";
@@ -109,21 +148,17 @@ export default function Carousel3D() {
     const cardGeometry = new THREE.PlaneGeometry(cardWidth, cardHeight, 32, 32);
 
     cards.forEach((card, index) => {
-      // Create materials: standard texture and fallback handlers
       const material = new THREE.MeshStandardMaterial({
         roughness: 0.2,
         metalness: 0.1,
         side: THREE.DoubleSide
       });
 
-      // Load texture with fallback
       textureLoader.load(
         card.imageUrl,
         (texture) => {
           texture.minFilter = THREE.LinearFilter;
-          texture.flipY = true; // Render upright in WebGL coordinate space
-          
-          // Replicate object-fit: cover crop logic for WebGL texture coordinates
+          texture.flipY = true;
           if (texture.image) {
             const imgAspect = texture.image.width / texture.image.height;
             const planeAspect = cardWidth / cardHeight;
@@ -131,36 +166,29 @@ export default function Carousel3D() {
             texture.wrapT = THREE.ClampToEdgeWrapping;
             if (imgAspect > planeAspect) {
               texture.repeat.set(planeAspect / imgAspect, 1.0);
-              texture.offset.set((1.0 - (planeAspect / imgAspect)) / 2.0, 0.0);
+              texture.offset.set((1.0 - planeAspect / imgAspect) / 2.0, 0.0);
             } else {
               texture.repeat.set(1.0, imgAspect / planeAspect);
-              texture.offset.set(0.0, (1.0 - (imgAspect / planeAspect)) / 2.0);
+              texture.offset.set(0.0, (1.0 - imgAspect / planeAspect) / 2.0);
             }
           }
-          
           material.map = texture;
           material.needsUpdate = true;
         },
         undefined,
         () => {
-          // Error handler (e.g. CORS block)
           material.map = createFallbackTexture(card.title, card.category);
           material.needsUpdate = true;
         }
       );
 
       const mesh = new THREE.Mesh(cardGeometry, material);
-
-      // Position in circle around Y axis
       const theta = (index / N) * Math.PI * 2;
       mesh.position.x = Math.sin(theta) * radius;
       mesh.position.z = Math.cos(theta) * radius;
       mesh.position.y = 0;
-
-      // Rotate to face outward
       mesh.rotation.y = theta;
 
-      // Store card meta data on mesh for raycasting
       mesh.userData = {
         id: card.id,
         title: card.title,
@@ -184,10 +212,9 @@ export default function Carousel3D() {
 
     // Raycasting & Hover State
     const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2(-9999, -9999); // offscreen initially
+    const mouse = new THREE.Vector2(-9999, -9999);
     let hoveredMesh = null;
 
-    // Events
     const onPointerDown = (e) => {
       isDragging = true;
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -204,11 +231,9 @@ export default function Carousel3D() {
         const deltaX = clientX - previousMouseX;
         previousMouseX = clientX;
         dragDeltaX = deltaX;
-        // Translate pixel drag to rotation angle
         targetRotationY += deltaX * 0.005;
       }
 
-      // Track mouse for raycasting (only for pointer devices)
       if (!e.touches) {
         const rect = canvas.getBoundingClientRect();
         mouse.x = ((clientX - rect.left) / width) * 2 - 1;
@@ -218,13 +243,9 @@ export default function Carousel3D() {
 
     const onPointerUp = () => {
       isDragging = false;
-      
-      // If drag distance was very small, treat as a click
       if (Math.abs(dragDeltaX) < 1.5) {
-        // Run Raycast
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(cardMeshes);
-        
         if (intersects.length > 0) {
           const clickedMesh = intersects[0].object;
           window.open(clickedMesh.userData.link, "_blank");
@@ -236,7 +257,6 @@ export default function Carousel3D() {
     canvas.addEventListener("mousedown", onPointerDown);
     canvas.addEventListener("mousemove", onPointerMove);
     window.addEventListener("mouseup", onPointerUp);
-
     canvas.addEventListener("touchstart", onPointerDown, { passive: true });
     canvas.addEventListener("touchmove", onPointerMove, { passive: true });
     window.addEventListener("touchend", onPointerUp);
@@ -246,19 +266,15 @@ export default function Carousel3D() {
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
-      // Lerp rotation for smooth drag damping
       carouselGroup.rotation.y += (targetRotationY - carouselGroup.rotation.y) * 0.1;
 
-      // Handle Auto-rotation when idle
       if (!isDragging) {
         idleTimer += 1;
         if (idleTimer > 150) {
-          // resume slow rotation
           targetRotationY += 0.002;
         }
       }
 
-      // Raycast for hover detection
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(cardMeshes);
 
@@ -268,12 +284,8 @@ export default function Carousel3D() {
           hoveredMesh = firstIntersected;
           setHoveredCardTitle(hoveredMesh.userData.title);
           setHoveredCardCat(hoveredMesh.userData.category);
-          
-          // Glow indicator
           document.body.style.cursor = "pointer";
         }
-        
-        // Target animations on hover (lift and scale)
         hoveredMesh.userData.targetScale = 1.1;
         hoveredMesh.userData.targetY = 0.15;
       } else {
@@ -285,28 +297,22 @@ export default function Carousel3D() {
         }
       }
 
-      // Smooth scale and position for all card meshes (lerp towards target)
       cardMeshes.forEach((mesh) => {
         const isThisHovered = mesh === hoveredMesh;
         mesh.userData.targetScale = isThisHovered ? 1.1 : 1.0;
         mesh.userData.targetY = isThisHovered ? 0.18 : 0.0;
-        
-        // Scale Lerp
+
         const currentScale = mesh.scale.x;
-        const targetScale = mesh.userData.targetScale;
-        const nextScale = currentScale + (targetScale - currentScale) * 0.15;
+        const nextScale = currentScale + (mesh.userData.targetScale - currentScale) * 0.15;
         mesh.scale.set(nextScale, nextScale, 1);
 
-        // Position Y Lerp
         mesh.position.y += (mesh.userData.targetY - mesh.position.y) * 0.15;
 
-        // Visual metalness highlight adjustment
         if (mesh.material) {
           mesh.material.emissive.setHex(isThisHovered ? 0x221711 : 0x000000);
         }
       });
 
-      // Subtle tilt carousel loop
       carouselGroup.rotation.x = Math.sin(Date.now() * 0.0005) * 0.03 - 0.05;
 
       renderer.render(scene, camera);
@@ -319,14 +325,11 @@ export default function Carousel3D() {
       if (!containerRef.current) return;
       width = container.clientWidth;
       height = container.clientHeight;
-
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-      // Adjust camera distance for mobile responsiveness
       if (width < 640) {
         camera.position.z = 7.0;
       } else if (width < 1024) {
@@ -338,9 +341,8 @@ export default function Carousel3D() {
 
     const resizeObserver = new ResizeObserver(() => handleResize());
     resizeObserver.observe(container);
-    handleResize(); // trigger initial layout sizing
+    handleResize();
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animationId);
       resizeObserver.disconnect();
@@ -352,7 +354,6 @@ export default function Carousel3D() {
       }
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchend", onPointerUp);
-      
       renderer.dispose();
       cardGeometry.dispose();
       cardMeshes.forEach((mesh) => {
@@ -366,20 +367,23 @@ export default function Carousel3D() {
     };
   }, []);
 
+  // Show simple CSS grid on mobile
+  if (isMobile) {
+    return <MobileCarousel />;
+  }
+
   return (
     <div ref={containerRef} className="relative w-full h-[500px] flex flex-col justify-center items-center overflow-hidden">
-      {/* 3D Canvas */}
-      <canvas 
-        ref={canvasRef} 
-        className="w-full h-full select-none" 
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full select-none"
         style={{ touchAction: "none" }}
         id="showcase-carousel-canvas"
       />
 
-      {/* Floating Description panel for hovered card */}
-      <div 
+      <div
         className={`absolute bottom-6 flex flex-col items-center pointer-events-none transition-all duration-500 ease-out select-none ${
-          hoveredCardTitle ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-4"
+          hoveredCardTitle ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}
       >
         <span className="font-mono text-xs text-pink-400 tracking-widest uppercase mb-1">
@@ -393,14 +397,13 @@ export default function Carousel3D() {
         </span>
       </div>
 
-      {/* Persistent helper tooltip if nothing is hovered */}
-      <div 
+      <div
         className={`absolute bottom-6 flex flex-col items-center pointer-events-none transition-all duration-500 ${
           !hoveredCardTitle ? "opacity-40" : "opacity-0"
         }`}
       >
         <span className="font-mono text-xs text-cream/70 tracking-widest uppercase">
-          ✦ Swipe or Drag to Rotate the Lookbook ✦
+          ✦ Drag to Rotate the Lookbook ✦
         </span>
       </div>
     </div>

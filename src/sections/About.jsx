@@ -86,6 +86,7 @@ export default function About() {
               src={influencerData.images.aboutLifestyle} 
               alt="Divya Rana Lifestyle portrait" 
               className="w-full h-full object-cover filter brightness-[0.9] hover:scale-105 transition-transform duration-700"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#10080c]/60 via-transparent to-transparent pointer-events-none" />
           </div>

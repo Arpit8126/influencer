@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import gsap from "gsap";
 
 // Global Components
@@ -42,30 +42,30 @@ export default function App() {
       }
     });
 
-    // Animate loader text characters up
+    // Animate loader text characters up — faster stagger
     tl.to(".loader-char", {
       y: 0,
       opacity: 1,
-      stagger: 0.08,
-      duration: 1.0,
+      stagger: 0.05,
+      duration: 0.7,
       ease: "power3.out"
     });
 
-    // Hold screen state briefly
+    // Hold screen state briefly — shorter pause
     tl.to(loaderTextRef.current, {
       opacity: 0,
       y: -20,
-      duration: 0.6,
+      duration: 0.4,
       ease: "power2.inOut",
-      delay: 0.5
+      delay: 0.3
     });
 
-    // Slide up loader curtain
+    // Slide up loader curtain — faster
     tl.to(loaderRef.current, {
       yPercent: -100,
-      duration: 1.0,
+      duration: 0.8,
       ease: "power4.inOut"
-    }, "-=0.2");
+    }, "-=0.15");
 
     return () => {
       document.body.style.overflow = "";
@@ -102,27 +102,29 @@ export default function App() {
         </div>
       </div>
 
-      {/* Page Content wrapped in Framer Motion for elegant reveal */}
-      <AnimatePresence>
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full flex flex-col relative z-10"
-          >
-            {/* Sections */}
-            <Header />
-            <Hero />
-            <About />
-            <MediaDeck />
-            <Showcase />
-            <Collabs />
-            <Contact />
-            <Footer />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 
+        Page Content: always in DOM so images start downloading immediately
+        behind the loader. Visually opacity-0 / pointer-events:none while 
+        loader is active, then fades in quickly once loader slides away.
+      */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="w-full flex flex-col relative z-10"
+        aria-hidden={isLoading}
+        style={{ pointerEvents: isLoading ? "none" : "auto" }}
+      >
+        {/* Sections */}
+        <Header />
+        <Hero />
+        <About />
+        <MediaDeck />
+        <Showcase />
+        <Collabs />
+        <Contact />
+        <Footer />
+      </motion.div>
     </>
   );
 }

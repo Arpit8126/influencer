@@ -65,6 +65,7 @@ export default function Collabs() {
   }, []);
 
   const handleCardMouseMove = (e) => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -153,6 +154,7 @@ export default function Collabs() {
                   alt={`${brand.brand} logo`} 
                   className="max-h-12 max-w-full object-contain filter contrast-[1.05] brightness-[0.8] hover:brightness-[1] transition-all duration-300"
                   style={{ transform: "translateZ(20px)" }}
+                  loading="lazy"
                 />
               </div>
             ))}
@@ -195,6 +197,7 @@ export default function Collabs() {
                       src={collab.bannerImage} 
                       alt={`${collab.brand} campaign screenshot`} 
                       className="w-full h-full object-cover filter brightness-[0.95]"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                   </div>

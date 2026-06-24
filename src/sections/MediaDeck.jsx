@@ -28,6 +28,7 @@ export default function MediaDeck() {
   }, []);
 
   const handleCardMouseMove = (e) => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -38,7 +39,6 @@ export default function MediaDeck() {
 
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    // Elegant tilt offsets (max 8 degrees)
     const rotateX = (centerY - y) / 8;
     const rotateY = (x - centerX) / 12;
 

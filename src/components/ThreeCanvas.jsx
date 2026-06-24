@@ -1,13 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
+// Detect touch/mobile device — skip WebGL entirely on mobile for performance
+const isMobileDevice = () =>
+  typeof window !== "undefined" &&
+  (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024);
+
 export default function ThreeCanvas({ imageUrl }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const portraitWrapperRef = useRef(null);
   const [webglActive, setWebGLActive] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if mobile on mount — skip WebGL entirely for performance
+    if (isMobileDevice()) {
+      setIsMobile(true);
+      return;
+    }
+
     if (!canvasRef.current || !containerRef.current) return;
 
     const container = containerRef.current;
@@ -33,7 +45,7 @@ export default function ThreeCanvas({ imageUrl }) {
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    // Particle Texture - create a circular canvas texture programmatically to avoid external asset dependency
+    // Particle Texture
     const createCircleTexture = () => {
       const matCanvas = document.createElement('canvas');
       matCanvas.width = 16;
@@ -44,14 +56,12 @@ export default function ThreeCanvas({ imageUrl }) {
       gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, 16, 16);
-
-      const texture = new THREE.CanvasTexture(matCanvas);
-      return texture;
+      return new THREE.CanvasTexture(matCanvas);
     };
 
     const particleTexture = createCircleTexture();
 
-    // 1. FLOATING BACKGROUND PARTICLES (Cloud)
+    // 1. FLOATING BACKGROUND PARTICLES
     const bgParticleCount = 150;
     const bgGeometry = new THREE.BufferGeometry();
     const bgPositions = new Float32Array(bgParticleCount * 3);
@@ -59,27 +69,24 @@ export default function ThreeCanvas({ imageUrl }) {
     const bgSpeeds = [];
 
     const palette = [
-      new THREE.Color(0xfb7185), // Rose pink
-      new THREE.Color(0xfdba74), // Dewy peach
-      new THREE.Color(0xc084fc), // Lavender/Violet
-      new THREE.Color(0x2dd4bf)  // Turquoise glow
+      new THREE.Color(0xfb7185),
+      new THREE.Color(0xfdba74),
+      new THREE.Color(0xc084fc),
+      new THREE.Color(0x2dd4bf)
     ];
 
     for (let i = 0; i < bgParticleCount; i++) {
       const idx = i * 3;
-      // Sparser distribution in 3D
-      bgPositions[idx] = (Math.random() - 0.5) * 6; // X
-      bgPositions[idx + 1] = (Math.random() - 0.5) * 6; // Y
-      bgPositions[idx + 2] = (Math.random() - 0.5) * 4; // Z
-
+      bgPositions[idx] = (Math.random() - 0.5) * 6;
+      bgPositions[idx + 1] = (Math.random() - 0.5) * 6;
+      bgPositions[idx + 2] = (Math.random() - 0.5) * 4;
       const color = palette[Math.floor(Math.random() * palette.length)];
       bgColors[idx] = color.r;
       bgColors[idx + 1] = color.g;
       bgColors[idx + 2] = color.b;
-
       bgSpeeds.push({
         x: (Math.random() - 0.5) * 0.002,
-        y: (Math.random() - 0.5) * 0.002 + 0.0005, // gentle upward float
+        y: (Math.random() - 0.5) * 0.002 + 0.0005,
         z: (Math.random() - 0.5) * 0.001
       });
     }
@@ -100,7 +107,6 @@ export default function ThreeCanvas({ imageUrl }) {
     const bgPoints = new THREE.Points(bgGeometry, bgMaterial);
     scene.add(bgPoints);
 
-
     // 2. ROTATING HALO / RING PARTICLES
     const haloParticleCount = 800;
     const haloGeometry = new THREE.BufferGeometry();
@@ -108,22 +114,17 @@ export default function ThreeCanvas({ imageUrl }) {
     const haloColors = new Float32Array(haloParticleCount * 3);
     const haloAngles = new Float32Array(haloParticleCount);
     const haloRadii = new Float32Array(haloParticleCount);
-    
-    const haloRadius = 2.2; // Fits around the larger portrait in 3D scene space
+    const haloRadius = 2.2;
 
     for (let i = 0; i < haloParticleCount; i++) {
       const angle = (i / haloParticleCount) * Math.PI * 2 + Math.random() * 0.1;
-      const radius = haloRadius + (Math.random() - 0.5) * 0.15; // minor thickness
-      
+      const radius = haloRadius + (Math.random() - 0.5) * 0.15;
       haloAngles[i] = angle;
       haloRadii[i] = radius;
-
       const idx = i * 3;
-      haloPositions[idx] = Math.cos(angle) * radius; // X
-      haloPositions[idx + 1] = Math.sin(angle) * radius; // Y
-      haloPositions[idx + 2] = (Math.random() - 0.5) * 0.3; // Z (minor depth spread)
-
-      // Gradient color along the ring
+      haloPositions[idx] = Math.cos(angle) * radius;
+      haloPositions[idx + 1] = Math.sin(angle) * radius;
+      haloPositions[idx + 2] = (Math.random() - 0.5) * 0.3;
       const colorProgress = i / haloParticleCount;
       let ringColor;
       if (colorProgress < 0.25) {
@@ -135,7 +136,6 @@ export default function ThreeCanvas({ imageUrl }) {
       } else {
         ringColor = new THREE.Color().lerpColors(palette[3], palette[0], (colorProgress - 0.75) / 0.25);
       }
-
       haloColors[idx] = ringColor.r;
       haloColors[idx + 1] = ringColor.g;
       haloColors[idx + 2] = ringColor.b;
@@ -155,24 +155,18 @@ export default function ThreeCanvas({ imageUrl }) {
     });
 
     const haloPoints = new THREE.Points(haloGeometry, haloMaterial);
-    
-    // Tilt the halo ring in 3D space
-    haloPoints.rotation.x = Math.PI / 3.5; // Tilt forward
-    haloPoints.rotation.y = Math.PI / 8; // Tilted slightly to side
-    
+    haloPoints.rotation.x = Math.PI / 3.5;
+    haloPoints.rotation.y = Math.PI / 8;
     scene.add(haloPoints);
 
-
-    // 3. TEXTURE LOADING & PORTRAIT plane mesh inside WebGL
+    // 3. TEXTURE LOADING & PORTRAIT PLANE
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load(imageUrl, () => {
-      // Once texture is successfully loaded, activate WebGL render overlay
       setWebGLActive(true);
     });
     texture.minFilter = THREE.LinearFilter;
     texture.magFilter = THREE.LinearFilter;
 
-    // GLSL Shaders for Liquid Ripple & Spotlight Light Sweep
     const vertexShaderSource = `
       varying vec2 vUv;
       uniform float uTime;
@@ -180,7 +174,6 @@ export default function ThreeCanvas({ imageUrl }) {
       void main() {
         vUv = uv;
         vec3 pos = position;
-        // Silk wave ripple in vertices
         float wave = sin(pos.x * 2.5 + uTime * 1.8) * cos(pos.y * 2.5 + uTime * 1.8) * (0.015 + 0.045 * uHover);
         pos.z += wave;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
@@ -195,46 +188,28 @@ export default function ThreeCanvas({ imageUrl }) {
       uniform float uHover;
       void main() {
         vec2 uv = vUv;
-        // 1. Liquid coordinate distortion ripple based on time and center distance
         float distFromCenter = distance(uv, vec2(0.5, 0.5));
         float ripple = sin(distFromCenter * 15.0 - uTime * 2.5) * 0.005 * uHover;
         uv += ripple;
-        
         vec4 color = texture2D(uTexture, uv);
-        
-        // 2. Multicolored Holographic iridescent light sweep (spotlight reflection)
         vec2 lightPos = uMouse * 0.5 + 0.5;
         float distToLight = distance(uv, lightPos);
         float sheen = smoothstep(0.45, 0.0, distToLight) * 0.16 * uHover;
-        
-        // Dynamic iridescent gradient based on UV position and time
-        vec3 colorPink = vec3(0.98, 0.44, 0.52); // #fb7185
-        vec3 colorPeach = vec3(0.99, 0.73, 0.45); // #fdba74
-        vec3 colorViolet = vec3(0.75, 0.52, 0.99); // #c084fc
-        
-        // Interpolate colors across the sweep gradient
+        vec3 colorPink = vec3(0.98, 0.44, 0.52);
+        vec3 colorPeach = vec3(0.99, 0.73, 0.45);
+        vec3 colorViolet = vec3(0.75, 0.52, 0.99);
         vec3 sweepColor = mix(colorPink, colorPeach, sin(uv.x * 3.14 + uTime * 0.5) * 0.5 + 0.5);
         sweepColor = mix(sweepColor, colorViolet, cos(uv.y * 3.14 - uTime * 0.5) * 0.5 + 0.5);
-        
-        // Add subtle constant warm glow on hover
         vec3 warmBase = color.rgb + (sweepColor * 0.04 * uHover);
         vec3 finalColor = warmBase + (sweepColor * sheen);
-        
-        // 3. Edge vignette fade to avoid harsh card boundaries
         float borderFadeX = smoothstep(0.0, 0.06, uv.x) * smoothstep(1.0, 0.94, uv.x);
         float borderFadeY = smoothstep(0.0, 0.06, uv.y) * smoothstep(1.0, 0.94, uv.y);
         float borderFade = borderFadeX * borderFadeY;
-        
         gl_FragColor = vec4(finalColor, color.a * borderFade);
-        
-        // Discard low alpha pixels to allow background particles to render behind transparent card edges
-        if (gl_FragColor.a < 0.01) {
-          discard;
-        }
+        if (gl_FragColor.a < 0.01) discard;
       }
     `;
 
-    // Plane geometry matching 350:455 aspect ratio (approx 2.9:3.77)
     const portraitGeometry = new THREE.PlaneGeometry(2.9, 3.77);
     const portraitMaterial = new THREE.ShaderMaterial({
       vertexShader: vertexShaderSource,
@@ -246,13 +221,12 @@ export default function ThreeCanvas({ imageUrl }) {
         uHover: { value: 0 }
       },
       transparent: true,
-      depthWrite: true // Allows correct Z-occlusion for background/halo particles
+      depthWrite: true
     });
 
     const portraitMesh = new THREE.Mesh(portraitGeometry, portraitMaterial);
-    portraitMesh.position.set(0, 0, 0.1); // Slightly forward from particles at Z = 0
+    portraitMesh.position.set(0, 0, 0.1);
     scene.add(portraitMesh);
-
 
     // Mouse Interaction
     const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -260,7 +234,6 @@ export default function ThreeCanvas({ imageUrl }) {
     let targetHover = 0.0;
 
     const handleMouseMove = (e) => {
-      // Normalized coordinates -1 to 1 for global camera parallax
       const rect = container.getBoundingClientRect();
       mouse.targetX = ((e.clientX - rect.left) / width) * 2 - 1;
       mouse.targetY = -((e.clientY - rect.top) / height) * 2 + 1;
@@ -274,25 +247,19 @@ export default function ThreeCanvas({ imageUrl }) {
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
-
       const elapsedTime = clock.getElapsedTime();
 
-      // Smooth camera mouse follow (global parallax)
       mouse.x += (mouse.targetX - mouse.x) * 0.08;
       mouse.y += (mouse.targetY - mouse.y) * 0.08;
 
-      // 1. Animate background particles
+      // Animate background particles
       const bgPositionsAttr = bgPoints.geometry.attributes.position;
       const bgArray = bgPositionsAttr.array;
-
       for (let i = 0; i < bgParticleCount; i++) {
         const idx = i * 3;
-        // Apply speed
         bgArray[idx] += bgSpeeds[i].x;
         bgArray[idx + 1] += bgSpeeds[i].y;
         bgArray[idx + 2] += bgSpeeds[i].z;
-
-        // Reset if float out of viewport boundaries in local space
         if (bgArray[idx + 1] > 3) {
           bgArray[idx + 1] = -3;
           bgArray[idx] = (Math.random() - 0.5) * 6;
@@ -300,36 +267,28 @@ export default function ThreeCanvas({ imageUrl }) {
       }
       bgPositionsAttr.needsUpdate = true;
 
-      // 2. Animate Halo (slow rotate and wiggle)
-      haloPoints.rotation.z = elapsedTime * 0.15; // Slow spin
-      
-      // Dynamic breathing effect on halo radii
+      // Animate Halo
+      haloPoints.rotation.z = elapsedTime * 0.15;
       const haloPositionsAttr = haloPoints.geometry.attributes.position;
       const haloArray = haloPositionsAttr.array;
-
       for (let i = 0; i < haloParticleCount; i++) {
         const idx = i * 3;
         const angle = haloAngles[i];
-        // add small sine wave breathing
         const dynamicRadius = haloRadii[i] + Math.sin(elapsedTime * 2 + angle * 4) * 0.02;
-        
         haloArray[idx] = Math.cos(angle) * dynamicRadius;
         haloArray[idx + 1] = Math.sin(angle) * dynamicRadius;
       }
       haloPositionsAttr.needsUpdate = true;
 
-      // 3. Update WebGL Portrait Uniforms & Animations
+      // Update uniforms
       portraitMaterial.uniforms.uTime.value = elapsedTime;
       portraitMaterial.uniforms.uHover.value += (targetHover - portraitMaterial.uniforms.uHover.value) * 0.08;
       portraitMaterial.uniforms.uMouse.value.x += (portraitMouse.targetX - portraitMaterial.uniforms.uMouse.value.x) * 0.08;
       portraitMaterial.uniforms.uMouse.value.y += (portraitMouse.targetY - portraitMaterial.uniforms.uMouse.value.y) * 0.08;
 
-      // Portrait mesh fully locked — no rotation, no float, no movement
       portraitMesh.rotation.y = 0;
       portraitMesh.rotation.x = 0;
       portraitMesh.position.y = 0;
-
-      // Camera fixed — no mouse parallax so image never drifts
       camera.position.x = 0;
       camera.position.y = 0;
       camera.lookAt(scene.position);
@@ -344,10 +303,8 @@ export default function ThreeCanvas({ imageUrl }) {
       if (!containerRef.current) return;
       width = container.clientWidth;
       height = container.clientHeight;
-
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
@@ -355,8 +312,7 @@ export default function ThreeCanvas({ imageUrl }) {
     const resizeObserver = new ResizeObserver(() => handleResize());
     resizeObserver.observe(container);
 
-    // Dynamic Hover Handlers - Fixed hero image, no hover effects
-    const handlePortraitMove = (e) => {
+    const handlePortraitMove = () => {
       portraitMouse.targetX = 0;
       portraitMouse.targetY = 0;
       targetHover = 0.0;
@@ -371,7 +327,6 @@ export default function ThreeCanvas({ imageUrl }) {
     container.addEventListener("mousemove", handlePortraitMove);
     container.addEventListener("mouseleave", handlePortraitLeave);
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -390,48 +345,72 @@ export default function ThreeCanvas({ imageUrl }) {
     };
   }, [imageUrl]);
 
+  // ── Mobile fallback: pure CSS portrait, no WebGL overhead ──
+  if (isMobile) {
+    return (
+      <div
+        ref={containerRef}
+        className="relative w-full h-[420px] sm:h-[520px] flex items-center justify-center select-none"
+      >
+        <div className="relative w-[280px] h-[364px] sm:w-[340px] sm:h-[442px]">
+          {/* Animated glow halo */}
+          <div className="absolute -inset-4 rounded-3xl bg-[radial-gradient(circle,rgba(251,113,133,0.22)_0%,rgba(192,132,252,0.12)_50%,transparent_70%)] blur-2xl animate-pulse" />
+          <div className="absolute inset-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-[#0c0c0c]">
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
+            <img
+              src={imageUrl}
+              alt="Divya Rana portrait"
+              className="w-full h-full object-cover object-center"
+              draggable="false"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </div>
+          <div className="absolute -bottom-3 -right-3 bg-pink-500 text-background font-mono text-xs tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-pink-400/40 flex items-center space-x-1">
+            <span>DIVYA RANA</span>
+            <span className="opacity-50">•</span>
+            <span>CREATOR</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="relative w-full h-[450px] sm:h-[550px] lg:h-[650px] flex items-center justify-center select-none"
       style={{ perspective: "1200px" }}
     >
-      {/* 3D Canvas overlaid on background */}
-      <canvas 
-        ref={canvasRef} 
-        className="absolute inset-0 z-10 w-full h-full pointer-events-none" 
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 z-10 w-full h-full pointer-events-none"
       />
 
-      {/* Portrait Container with GSAP Parallax */}
-      <div 
+      <div
         ref={portraitWrapperRef}
         className="relative w-[300px] h-[390px] sm:w-[380px] sm:h-[494px] lg:w-[440px] lg:h-[572px] z-0 transition-shadow duration-500"
         style={{ transformStyle: "preserve-3d" }}
       >
-        {/* Layer 2: Main Portrait Image Card (Fallback: displays instantly, fades out when WebGL loads) */}
-        <div 
+        <div
           className={`absolute inset-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl z-20 bg-[#0c0c0c] transition-opacity duration-1000 ${
             webglActive ? "opacity-0 pointer-events-none" : "opacity-100"
           }`}
         >
-          {/* Frosted vignette overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-20" />
-          
-          {/* Moving light sheen overlay */}
           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(201,169,110,0.05)_50%,transparent_75%)] bg-[length:250%_250%] animate-sheen z-20 pointer-events-none" />
-
-          <img 
-            src={imageUrl} 
-            alt="Divya Rana portrait" 
+          <img
+            src={imageUrl}
+            alt="Divya Rana portrait"
             className="w-full h-full object-cover object-center filter contrast-[1.03] brightness-[0.93] transition-transform duration-700"
             draggable="false"
+            loading="eager"
+            fetchPriority="high"
           />
-          {/* Subtle gold overlay filter */}
           <div className="absolute inset-0 bg-gold/5 mix-blend-overlay z-0" />
         </div>
 
-        {/* Layer 3: Dynamic overlay label badge */}
-        <div 
+        <div
           className="absolute -bottom-3 -right-3 bg-pink-500 text-background font-mono text-xs tracking-widest uppercase font-bold py-2.5 px-5 rounded-full z-30 shadow-xl border border-pink-400/40 flex items-center space-x-1"
           style={{ transform: "translateZ(30px)" }}
         >

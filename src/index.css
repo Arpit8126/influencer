@@ -116,6 +116,24 @@
   border: 1px solid rgba(251, 113, 133, 0.08);
 }
 
+/* Disable expensive backdrop-filter on mobile */
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: rgba(13, 8, 10, 0.88);
+  }
+  .glass-card-colored {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(18, 10, 14, 0.92) !important;
+  }
+  .colorful-bg-blob {
+    filter: blur(60px) !important;
+    opacity: 0.18 !important;
+  }
+}
+
 .glass-card-hover:hover {
   border-color: rgba(251, 113, 133, 0.25);
   box-shadow: 0 10px 30px -10px rgba(192, 132, 252, 0.2);
@@ -371,3 +389,11 @@
   to   { opacity: 1; }
 }
 
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}

@@ -95,6 +95,7 @@ function ReelCard({ reel }) {
           className="absolute inset-0 w-full h-full object-cover"
           style={{ zIndex: 20 }}
           draggable="false"
+          loading="lazy"
         />
       )}
 
@@ -110,6 +111,7 @@ function ReelCard({ reel }) {
               src={influencerData.images.heroPortrait}
               alt="avatar"
               className="w-full h-full object-cover scale-110"
+              loading="lazy"
             />
           </div>
           <span className="font-sans text-[10px] tracking-wider text-cream font-semibold truncate">

@@ -12,6 +12,9 @@ export default function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Skip custom cursor entirely on touch/mobile devices
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+
     let lastTouchTime = 0;
     let customCursorEnabled = false;
 

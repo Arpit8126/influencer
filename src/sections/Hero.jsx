@@ -6,6 +6,11 @@ import ThreeCanvas from "../components/ThreeCanvas";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Detect mobile/touch — used to skip heavy animations
+const isMobile = () =>
+  typeof window !== "undefined" &&
+  (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
+
 export default function Hero() {
   const sectionRef = useRef(null);
   const leftContentRef = useRef(null);
@@ -51,110 +56,50 @@ export default function Hero() {
       console.log("Hero load animations complete!");
     });
 
-    // 2. Mouse Move Parallax on Left Content & Background Blobs
+    // 2. Mouse Move Parallax — desktop only (no mouse on mobile)
     const handleMouseParallax = (e) => {
-      if (window.innerWidth < 1024) return; // Disable on tablet/mobile to avoid layout issues
-      
+      if (window.innerWidth < 1024) return;
       const { clientX, clientY } = e;
       const xVal = (clientX - window.innerWidth / 2) * 0.015;
       const yVal = (clientY - window.innerHeight / 2) * 0.015;
-
-      gsap.to(leftContentRef.current, {
-        x: xVal,
-        y: yVal,
-        duration: 0.8,
-        ease: "power2.out",
-        overwrite: "auto"
-      });
-
-      // Parallax displacement for background glows
-      gsap.to(".hero-glow-blob-1", {
-        x: xVal * -0.5,
-        y: yVal * -0.5,
-        duration: 1.2,
-        ease: "power2.out",
-        overwrite: "auto"
-      });
-      gsap.to(".hero-glow-blob-2", {
-        x: xVal * 0.3,
-        y: yVal * 0.3,
-        duration: 1.2,
-        ease: "power2.out",
-        overwrite: "auto"
-      });
+      gsap.to(leftContentRef.current, { x: xVal, y: yVal, duration: 0.8, ease: "power2.out", overwrite: "auto" });
+      gsap.to(".hero-glow-blob-1", { x: xVal * -0.5, y: yVal * -0.5, duration: 1.2, ease: "power2.out", overwrite: "auto" });
+      gsap.to(".hero-glow-blob-2", { x: xVal * 0.3, y: yVal * 0.3, duration: 1.2, ease: "power2.out", overwrite: "auto" });
     };
-
     window.addEventListener("mousemove", handleMouseParallax);
 
-    // Floating animations for background blobs
-    const blob1Tween = gsap.to(".hero-glow-blob-1", {
-      x: "random(-40, 40)",
-      y: "random(-40, 40)",
-      duration: 8,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
+    // Floating blob animations — skip on mobile
+    let blob1Tween, blob2Tween, blob3Tween, blob4Tween;
+    if (!isMobile()) {
+      blob1Tween = gsap.to(".hero-glow-blob-1", { x: "random(-40, 40)", y: "random(-40, 40)", duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      blob2Tween = gsap.to(".hero-glow-blob-2", { x: "random(-50, 50)", y: "random(-50, 50)", duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      blob3Tween = gsap.to(".hero-glow-blob-3", { x: "random(-35, 35)", y: "random(-35, 35)", duration: 7, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      blob4Tween = gsap.to(".hero-glow-blob-4", { x: "random(-45, 45)", y: "random(-45, 45)", duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    }
 
-    const blob2Tween = gsap.to(".hero-glow-blob-2", {
-      x: "random(-50, 50)",
-      y: "random(-50, 50)",
-      duration: 10,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-
-    const blob3Tween = gsap.to(".hero-glow-blob-3", {
-      x: "random(-35, 35)",
-      y: "random(-35, 35)",
-      duration: 7,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-
-    const blob4Tween = gsap.to(".hero-glow-blob-4", {
-      x: "random(-45, 45)",
-      y: "random(-45, 45)",
-      duration: 9,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-
-    // 3. Parallax Scroll Trigger
-    const scrollTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: "top top",
-        end: "bottom top",
-        scrub: true
-      }
-    });
-
-    // Move left content down slower than scrolling (parallax)
-    scrollTl.to(leftContentRef.current, {
-      y: 140,
-      opacity: 0.1,
-      ease: "none"
-    }, 0);
-
-    // Move right canvas slightly up/left (depth)
-    scrollTl.to(rightContentRef.current, {
-      y: -60,
-      scale: 0.95,
-      opacity: 0.3,
-      ease: "none"
-    }, 0);
+    // 3. Parallax Scroll Trigger — desktop only (skip on mobile for smooth scroll)
+    let scrollTl;
+    if (!isMobile()) {
+      scrollTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top top",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+      scrollTl.to(leftContentRef.current, { y: 140, opacity: 0.1, ease: "none" }, 0);
+      scrollTl.to(rightContentRef.current, { y: -60, scale: 0.95, opacity: 0.3, ease: "none" }, 0);
+    }
 
     return () => {
       window.removeEventListener("mousemove", handleMouseParallax);
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-      blob1Tween.kill();
-      blob2Tween.kill();
-      blob3Tween.kill();
-      blob4Tween.kill();
+      scrollTl && scrollTl.scrollTrigger && scrollTl.scrollTrigger.kill();
+      scrollTl && scrollTl.kill();
+      blob1Tween && blob1Tween.kill();
+      blob2Tween && blob2Tween.kill();
+      blob3Tween && blob3Tween.kill();
+      blob4Tween && blob4Tween.kill();
     };
   }, []);
 
