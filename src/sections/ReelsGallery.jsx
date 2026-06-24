@@ -42,6 +42,18 @@ function ReelCard({ reel }) {
         <div className="w-2 h-2 rounded-full bg-white/10" />
       </div>
 
+      {/* Instagram Button — Top-Right, always active, small footprint to prevent touch blocking */}
+      <a
+        href={reel.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-4 right-4 z-50 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-pink-400 hover:bg-pink-500/80 hover:text-white active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
+        title="Open on Instagram"
+      >
+        <Instagram className="w-4 h-4" />
+      </a>
+
       {/* Iframe — always in DOM, hidden until viewport */}
       <div
         style={{
@@ -55,7 +67,7 @@ function ReelCard({ reel }) {
         <iframe
           allow="fullscreen; autoplay"
           allowFullScreen
-          src={reel.streamableUrl}
+          src={showVideo ? reel.streamableUrl : "about:blank"}
           title={reel.title}
           style={{ border: "none", width: "100%", height: "100%", position: "absolute", left: 0, top: 0, display: "block" }}
         />
@@ -105,9 +117,9 @@ function ReelCard({ reel }) {
         </div>
       )}
 
-      {/* Hover/Tap pill — View on Instagram (Always rendered, visible on hover/focus) */}
+      {/* Hover Pill (Desktop Only) — View on Instagram */}
       <div
-        className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
+        className="absolute top-10 left-0 right-0 hidden md:flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
         style={{ zIndex: 50 }}
       >
         <a
