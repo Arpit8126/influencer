@@ -64,42 +64,6 @@ export default function Collabs() {
     );
   }, []);
 
-  const handleCardMouseMove = (e) => {
-    if (window.matchMedia("(pointer: coarse)").matches) return;
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    card.style.setProperty("--mouse-x", `${x}px`);
-    card.style.setProperty("--mouse-y", `${y}px`);
-
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    // Elegant tilt offsets (max 8 degrees rotateX, 10 degrees rotateY)
-    const rotateX = (centerY - y) / 15;
-    const rotateY = (x - centerX) / 25;
-
-    gsap.to(card, {
-      rotateX: rotateX,
-      rotateY: rotateY,
-      transformPerspective: 1000,
-      ease: "power2.out",
-      duration: 0.4,
-      overwrite: "auto"
-    });
-  };
-
-  const handleCardMouseLeave = (e) => {
-    const card = e.currentTarget;
-    gsap.to(card, {
-      rotateX: 0,
-      rotateY: 0,
-      ease: "power3.out",
-      duration: 0.6,
-      overwrite: "auto"
-    });
-  };
 
   return (
     <section
@@ -143,17 +107,12 @@ export default function Collabs() {
             {influencerData.brandLogos.map((brand) => (
               <div 
                 key={brand.id} 
-                data-cursor-text="PARTNER"
-                onMouseMove={handleCardMouseMove}
-                onMouseLeave={handleCardMouseLeave}
-                className="collab-logo-animate glass-card spotlight-card rounded-2xl p-6 flex items-center justify-center h-24 border border-white/5 hover:border-pink-500/30 hover:bg-pink-500/[0.02] transition-all duration-500 shadow-md cursor-none"
-                style={{ transformStyle: "preserve-3d" }}
+                className="collab-logo-animate glass-card rounded-2xl p-6 flex items-center justify-center h-24 border border-white/5 shadow-md"
               >
                 <img 
                   src={brand.logoUrl} 
                   alt={`${brand.brand} logo`} 
-                  className="max-h-12 max-w-full object-contain filter contrast-[1.05] brightness-[0.8] hover:brightness-[1] transition-all duration-300"
-                  style={{ transform: "translateZ(20px)" }}
+                  className="max-h-12 max-w-full object-contain filter contrast-[1.05] brightness-[0.8]"
                   loading="lazy"
                 />
               </div>
@@ -176,22 +135,17 @@ export default function Collabs() {
               return (
                 <div
                   key={collab.id}
-                  data-cursor-text="VIEW"
-                  onMouseMove={handleCardMouseMove}
-                  onMouseLeave={handleCardMouseLeave}
-                  className={`collab-case-animate glass-card-colored spotlight-card rounded-3xl border border-white/5 overflow-hidden flex flex-col ${
+                  className={`collab-case-animate glass-card-colored rounded-3xl border border-white/5 overflow-hidden flex flex-col ${
                     isEven ? "lg:flex-row" : "lg:flex-row-reverse"
-                  } p-6 sm:p-8 gap-6 sm:gap-8 group transition-all duration-500 shadow-xl cursor-none`}
-                  style={{ transformStyle: "preserve-3d" }}
+                  } p-6 sm:p-8 gap-6 sm:gap-8 shadow-xl`}
                 >
                   {/* Image Container: Dynamic aspect ratio based on banner orientation */}
                   <div 
-                    className={`w-full rounded-2xl overflow-hidden relative bg-[#0c080a] border border-white/5 flex-shrink-0 flex items-center justify-center transform group-hover:scale-[1.02] transition-transform duration-500 ${
+                    className={`w-full rounded-2xl overflow-hidden relative bg-[#0c080a] border border-white/5 flex-shrink-0 flex items-center justify-center ${
                       collab.id === "collab-2" 
                         ? "md:w-[320px] aspect-[16/10]" 
                         : "md:w-[240px] aspect-[9/16]"
                     }`}
-                    style={{ transform: "translateZ(15px)" }}
                   >
                     <img 
                       src={collab.bannerImage} 
@@ -205,7 +159,7 @@ export default function Collabs() {
                   {/* Content details on the right */}
                   <div className={`flex-1 flex flex-col justify-between py-2 space-y-6 select-none ${
                     isEven ? "lg:pl-4" : "lg:pr-4"
-                  }`} style={{ transform: "translateZ(25px)" }}>
+                  }`}>
                     <div className="space-y-4">
                       {/* Eyebrow type & metrics */}
                       <div className="flex flex-wrap items-center gap-3">

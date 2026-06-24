@@ -33,6 +33,8 @@ function ReelCard({ reel }) {
   return (
     <div
       ref={cardRef}
+      onMouseEnter={() => setShowVideo(true)}
+      onTouchStart={() => setShowVideo(true)}
       className="reel-phone-animate flex-shrink-0 w-[240px] sm:w-[260px] aspect-[9/18.5] bg-[#0c080a] rounded-[2.5rem] border-[5px] border-white/5 relative overflow-hidden group/phone snap-start shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:border-pink-500/30 cursor-pointer md:cursor-none"
     >
       {/* Phone notch */}
@@ -71,52 +73,56 @@ function ReelCard({ reel }) {
         />
       )}
 
-      {/* Bottom bar — pointer-events:none so Streamable controls stay visible */}
-      <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none select-none"
-        style={{ zIndex: 40 }}
-      >
-        <div className="flex items-center space-x-2 mb-1.5">
-          <div className="w-5 h-5 rounded-full overflow-hidden border border-pink-500/40 bg-luxuryMauve flex-shrink-0">
-            <img
-              src={influencerData.images.heroPortrait}
-              alt="avatar"
-              className="w-full h-full object-cover scale-110"
-              loading="lazy"
-            />
-          </div>
-          <span className="font-sans text-[10px] tracking-wider text-cream font-semibold truncate">
-            @{influencerData.username}
-          </span>
-        </div>
-        <div className="flex items-center space-x-3 text-[10px] font-sans text-white/50 border-t border-white/10 pt-2">
-          <div className="flex items-center space-x-1">
-            <Eye className="w-3 h-3 text-pink-400/75" />
-            <span>{reel.views}</span>
-          </div>
-          <div className="flex items-center space-x-1">
-            <Instagram className="w-3 h-3 text-pink-400/75" />
-            <span>Open on Instagram</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Hover/Tap pill — View on Instagram */}
-      <div
-        className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
-        style={{ zIndex: 50 }}
-      >
-        <a
-          href={reel.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2 px-4 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
+      {/* Bottom bar — ONLY show when video is NOT active/playing */}
+      {!showVideo && (
+        <div
+          className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-12 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none select-none"
+          style={{ zIndex: 40 }}
         >
-          <Instagram className="w-3 h-3 text-pink-300" />
-          <span>View on Instagram ↗</span>
-        </a>
-      </div>
+          <div className="flex items-center space-x-2 mb-1.5">
+            <div className="w-5 h-5 rounded-full overflow-hidden border border-pink-500/40 bg-luxuryMauve flex-shrink-0">
+              <img
+                src={influencerData.images.heroPortrait}
+                alt="avatar"
+                className="w-full h-full object-cover scale-110"
+                loading="lazy"
+              />
+            </div>
+            <span className="font-sans text-[10px] tracking-wider text-cream font-semibold truncate">
+              @{influencerData.username}
+            </span>
+          </div>
+          <div className="flex items-center space-x-3 text-[10px] font-sans text-white/50 border-t border-white/10 pt-2">
+            <div className="flex items-center space-x-1">
+              <Eye className="w-3 h-3 text-pink-400/75" />
+              <span>{reel.views}</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <Instagram className="w-3 h-3 text-pink-400/75" />
+              <span>Open on Instagram</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hover/Tap pill — View on Instagram (ONLY show when video is NOT active/playing) */}
+      {!showVideo && (
+        <div
+          className="absolute top-10 left-0 right-0 flex justify-center opacity-0 group-hover/phone:opacity-100 transition-opacity duration-300 pointer-events-none select-none"
+          style={{ zIndex: 50 }}
+        >
+          <a
+            href={reel.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center space-x-1.5 bg-black/70 backdrop-blur-sm text-white font-sans text-[10px] tracking-[0.16em] uppercase font-bold py-2 px-4 rounded-full border border-pink-400/40 shadow-lg pointer-events-auto cursor-pointer hover:bg-pink-500/80 transition-colors duration-200"
+          >
+            <Instagram className="w-3 h-3 text-pink-300" />
+            <span>View on Instagram ↗</span>
+          </a>
+        </div>
+      )}
     </div>
   );
 }
