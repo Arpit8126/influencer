@@ -49,15 +49,24 @@ export default function Header() {
       }`}
       id="global-header"
     >
-      <div className="w-full px-8 md:px-16 flex items-center justify-between relative">
+      <div className="w-full px-4 sm:px-8 md:px-16 flex items-center justify-between relative">
         
         {/* Left Side: Brand Logo */}
         <button
           onClick={() => handleNavClick("hero")}
-          className="font-playfair text-xl sm:text-2xl font-normal tracking-wider text-cream focus:outline-none select-none hover:text-pink-400 transition-colors duration-300 z-10"
+          className="font-playfair text-sm sm:text-lg md:text-xl lg:text-2xl font-normal tracking-wider text-cream focus:outline-none select-none hover:text-pink-400 transition-colors duration-300 z-10"
           aria-label="Back to intro"
         >
           {influencerData.name.toUpperCase()}
+        </button>
+
+        {/* Mobile Contact Button (Absolutely Centered) */}
+        <button
+          onClick={() => handleNavClick("contact")}
+          className="lg:hidden absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 font-sans text-[9px] sm:text-[10px] tracking-[0.16em] uppercase border border-pink-500/40 bg-pink-500/10 hover:bg-gradient-to-r hover:from-pink-500 hover:to-coral hover:text-background active:scale-95 transition-all duration-300 py-1.5 px-3.5 rounded-full text-cream font-bold z-10"
+          id="mobile-header-contact-btn"
+        >
+          Contact
         </button>
 
         {/* Center: Desktop Navigation Links (Absolutely Centered) */}
