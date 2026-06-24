@@ -64,7 +64,7 @@ function ReelCard({ reel, isMobile }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 left-4 z-50 flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full text-pink-400 font-sans text-[9px] font-bold tracking-wider active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
+          className="absolute top-10 left-4 z-50 flex items-center space-x-1.5 bg-black/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full text-pink-400 font-sans text-[9px] font-bold tracking-wider active:scale-95 transition-all duration-200 shadow-md cursor-pointer pointer-events-auto"
         >
           <Instagram className="w-3.5 h-3.5 text-pink-400" />
           <span>Watch on Instagram</span>
@@ -227,7 +227,6 @@ export default function ReelsGallery() {
           style={{
             gap: isMobile ? "12px" : "24px",
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-x",
           }}
           id="reels-scroller-row"
         >
